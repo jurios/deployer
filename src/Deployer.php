@@ -183,7 +183,6 @@ class Deployer
                 $this->manager->delete($change->path());
             }
 
-            sleep(1);
             $progressBar->advance();
         }
 
