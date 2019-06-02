@@ -28,6 +28,8 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
     {
         $status = true;
 
+        sleep(1);
+
         return $status;
     }
 
@@ -35,12 +37,16 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
     {
         $status = true;
 
+        sleep(1);
+
         return $status;
     }
 
     public function delete(string $prod_path)
     {
         $status = true;
+
+        sleep(1);
 
         return $status;
     }
