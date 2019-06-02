@@ -23,6 +23,13 @@ class ChangeList
     protected $includes;
 
     /**
+     * List of changes which are being ignored by configuration
+     *
+     * @var array
+     */
+    protected $ignores;
+
+    /**
      * Deployer configuration
      *
      * @var Configuration
@@ -33,6 +40,39 @@ class ChangeList
     {
         $this->config = $config;
         $this->changes = [];
+        $this->ignores = [];
+        $this->includes = [];
+    }
+
+    /**
+     * Returns the change list
+     *
+     * @return array
+     */
+    public function changes()
+    {
+        $this->sortChanges();
+        return $this->changes;
+    }
+
+    /**
+     * Returns the changes ignored
+     *
+     * @return array
+     */
+    public function ignores()
+    {
+        return $this->ignores;
+    }
+
+    /**
+     * Returns the changes included
+     *
+     * @return array
+     */
+    public function includes()
+    {
+        return $this->includes;
     }
 
     /**
@@ -104,17 +144,6 @@ class ChangeList
     }
 
     /**
-     * Returns the change list
-     *
-     * @return array
-     */
-    public function changes()
-    {
-        $this->sortChanges();
-        return $this->changes;
-    }
-
-    /**
      * Sort the change array alphabetically by path
      */
     private function sortChanges()
@@ -155,6 +184,9 @@ class ChangeList
                  */
                 if (fnmatch($rule, $change->to())) {
                     $this->add(new Delete($change->from()));
+
+                    $this->ignores[] = new Add($change->to());
+
                     return true;
                 }
 
@@ -163,11 +195,17 @@ class ChangeList
                  */
                 if (fnmatch($rule, $change->from())) {
                     $this->add(new Add($change->to()));
+
+                    $this->ignores[] = new Delete($change->from());
+
                     return true;
                 }
 
             } else {
                 if (fnmatch($rule, $change->path())) {
+
+                    $this->ignores[] = $change;
+
                     return true;
                 }
             }

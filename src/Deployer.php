@@ -14,6 +14,7 @@ use Kodilab\Deployer\Changes\Modify;
 use Kodilab\Deployer\Changes\Rename;
 use Kodilab\Deployer\Git\Git;
 use Kodilab\Deployer\Managers\ManagerRepository;
+use Kodilab\Deployer\Traits\FileLists;
 use Kodilab\Deployer\Vendor\VendorDiff;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\StringInput;
@@ -25,6 +26,8 @@ class Deployer
     const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
     const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
     const COMPOSER_JSON_PRODUCTION_FILENAME = 'composer.json.production';
+
+    use FileLists;
 
     /**
      * Project path
@@ -143,7 +146,16 @@ class Deployer
      */
     public function deploy()
     {
+        $this->listIgnoredFiles();
+        $this->listIncludedFiles();
+
+        sleep(5);
+
         $this->listDeployTasks();
+
+        $this->output->writeln('<fg=yellow;options=bold>The deploy process will start in 10 seconds...<fg=default>');
+        $this->output->writeln('<fg=blue;options=bold>');
+        sleep(10);
 
         ProgressBar::setFormatDefinition('custom',
             ' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s% %message%'
@@ -187,34 +199,8 @@ class Deployer
         }
 
         $progressBar->finish();
-    }
 
-    /**
-     * Show the change list
-     */
-    private function listDeployTasks()
-    {
-        $this->output->writeln("\n\n");
-        $this->output->title('Change list');
-
-        foreach ($this->changeList->changes() as $change)
-        {
-            if (get_class($change) === Add::class) {
-                $this->output->writeln('<fg=green>[A] ' . $change->path() . '<fg=default>');
-            }
-
-            if (get_class($change) === Modify::class) {
-                $this->output->writeln('<fg=blue>[M] ' . $change->path() . '<fg=default>');
-            }
-
-            if (get_class($change) === Rename::class) {
-                $this->output->writeln('<fg=yellow>[R] ' . $change->from() . ' => ' . $this->changes->to() . '<fg=default>');
-            }
-
-            if (get_class($change) === Delete::class) {
-                $this->output->writeln('<fg=red>[D] ' . $change->path() . '<fg=default>');
-            }
-        }
+        $this->output->writeln('<fg=default>');
     }
 
     /**
