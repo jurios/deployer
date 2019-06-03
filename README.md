@@ -47,9 +47,9 @@ WIP
 
 use Kodilab\Deployer\Deployer;
 
-$config = []; //Se "Configuration" section
+$config = []; //See "Configuration" section
 
-$deployer = new Deployer($project_path, $config); // Se "How to call it" section
+$deployer = new Deployer($project_path, $config); // See "How to call it" section
 $deployer->deploy();
 
 ```
