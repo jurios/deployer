@@ -65,6 +65,11 @@ class Project
         $this->files[] = $path;
     }
 
+    public function generateFile(string $path, string $content)
+    {
+        return file_put_contents($this->path . DIRECTORY_SEPARATOR . $path, $content);
+    }
+
     /**
      * List all the project files
      *

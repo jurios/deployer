@@ -9,6 +9,8 @@ use Kodilab\Deployer\Managers\ManagerInterface;
 
 class SimulateManager extends ManagerAbstract implements ManagerInterface
 {
+    const SLEEP_TIME = 1;
+    
     public function __construct($config = [])
     {
         parent::__construct($config);
@@ -28,7 +30,7 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
     {
         $status = true;
 
-        sleep(1);
+        sleep(self::SLEEP_TIME);
 
         return $status;
     }
@@ -37,7 +39,7 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
     {
         $status = true;
 
-        sleep(1);
+        sleep(self::SLEEP_TIME);
 
         return $status;
     }
@@ -46,7 +48,7 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
     {
         $status = true;
 
-        sleep(1);
+        sleep(self::SLEEP_TIME);
 
         return $status;
     }

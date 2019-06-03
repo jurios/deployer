@@ -201,6 +201,14 @@ class Deployer
         $progressBar->finish();
 
         $this->output->writeln('<fg=default>');
+
+        $result = $this->deployBuildFile();
+
+        if ($result) {
+            $this->output->writeln('<fg=green>BUILD file deployed<fg=default>');
+        } else {
+            $this->output->writeln('<fg=red>BUILD file NOT deployed<fg=default>');
+        }
     }
 
     /**
@@ -292,5 +300,40 @@ class Deployer
         $this->git->checkout(
             'composer.lock', $this->production_commit, $this->project_path . DIRECTORY_SEPARATOR . 'composer.lock.production'
         );
+    }
+
+    /**
+     * Deploy the new BUILD file
+     *
+     * @return bool
+     */
+    private function deployBuildFile()
+    {
+        printf("Deployment finished successfuly. Generating new BUILD file\n");
+
+        $result = $this->tagBuild();
+
+        if (!is_null($result)) {
+            $status = $this->manager->upload($result->path());
+            $result = $status;
+        }
+        return $result;
+    }
+
+    /**
+     * Generate the BUILD file to be deployed
+     *
+     * @return Modify|null
+     */
+    private function tagBuild()
+    {
+        $build = $this->project->generateFile('BUILD', $this->local_commit);
+
+        if (!$build) {
+            printf("BUILD file can not be created\n");
+            return null;
+        }
+
+        return new Modify('BUILD');
     }
 }
