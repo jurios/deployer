@@ -261,7 +261,7 @@ class Deployer
         }
 
         if (file_exists($this->project_path . DIRECTORY_SEPARATOR . self::BUILD_PRODUCTION_FILENAME)) {
-            $commit = file_get_contents(self::BUILD_PRODUCTION_PATH);
+            $commit = file_get_contents(self::BUILD_PRODUCTION_FILENAME);
             $commit = str_replace("\n", "", $commit);
 
             if (!isCommitValid($commit)) {
