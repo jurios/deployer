@@ -23,6 +23,8 @@ use Symfony\Component\Console\Output\StreamOutput;
 
 class Deployer
 {
+    const VERSION = '1.0.0-rc1';
+
     const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
     const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
     const COMPOSER_JSON_PRODUCTION_FILENAME = 'composer.json.production';
@@ -103,7 +105,7 @@ class Deployer
     public function __construct(string $project_path, array $config = [], string $from_commit = null)
     {
         $this->setOutput();
-        $this->output->writeln('<fg=green;options=bold>Starting deployer v2.0.0<fg=default>');
+        $this->output->writeln('<fg=green;options=bold>Starting deployer ' . self::VERSION .'<fg=default>');
 
         $this->project_path = $project_path;
         $this->config = new Configuration($config);
