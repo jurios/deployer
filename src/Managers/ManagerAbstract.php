@@ -4,6 +4,8 @@
 namespace Kodilab\Deployer\Managers;
 
 
+use Kodilab\Deployer\Configuration;
+
 class ManagerAbstract
 {
     protected $host;
@@ -18,7 +20,7 @@ class ManagerAbstract
 
     protected $sftp;
 
-    public function __construct($config = [])
+    public function __construct(Configuration $config)
     {
         $this->validateConfig();
         $this->startConnection();

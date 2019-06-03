@@ -113,7 +113,7 @@ class Deployer
         $this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found');
 
 
-        $this->manager = ManagerRepository::getManager($this->config->get('manager'));
+        $this->manager = ManagerRepository::getManager($this->config);
 
         $this->git = new Git($this->project_path);
 

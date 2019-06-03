@@ -4,6 +4,7 @@
 namespace Kodilab\Deployer\Managers;
 
 
+use Kodilab\Deployer\Configuration;
 use Kodilab\Deployer\Managers\Protocols\FTPManager;
 use Kodilab\Deployer\Managers\Protocols\SFTPManager;
 use Kodilab\Deployer\Managers\Protocols\SimulateManager;
@@ -17,14 +18,13 @@ class ManagerRepository
     /**
      * Returns the Manager
      *
-     * @param string $id
-     * @param array $config
+     * @param Configuration $config
      * @return FTPManager|SFTPManager|SimulateManager
      * @throws \Exception
      */
-    public static function getManager(array $config)
+    public static function getManager(Configuration $config)
     {
-        $id = $config['protocol'];
+        $id = $config->get('manager.protocol');
 
         if ($id === self::FTP) {
             return self::getFTPManager($config);
@@ -44,10 +44,10 @@ class ManagerRepository
     /**
      * Returns a FTPManager instance
      *
-     * @param array $config
+     * @param Configuration $config
      * @return FTPManager
      */
-    private static function getFTPManager(array $config)
+    private static function getFTPManager(Configuration $config)
     {
         return new FTPManager($config);
     }
@@ -55,10 +55,10 @@ class ManagerRepository
     /**
      * Returns a SFTPManager instance
      *
-     * @param array $config
+     * @param Configuration $config
      * @return SFTPManager
      */
-    private static function getSFTPManager(array $config)
+    private static function getSFTPManager(Configuration $config)
     {
         return new SFTPManager($config);
     }
@@ -66,10 +66,10 @@ class ManagerRepository
     /**
      * Returns a SimulateManager instance
      *
-     * @param array $config
+     * @param Configuration $config
      * @return SimulateManager
      */
-    private static function getSimulateManager(array $config)
+    private static function getSimulateManager(Configuration $config)
     {
         return new SimulateManager($config);
     }

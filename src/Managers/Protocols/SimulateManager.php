@@ -4,14 +4,15 @@
 namespace Kodilab\Deployer\Managers\Protocols;
 
 
+use Kodilab\Deployer\Configuration;
 use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerInterface;
 
 class SimulateManager extends ManagerAbstract implements ManagerInterface
 {
     const SLEEP_TIME = 1;
-    
-    public function __construct($config = [])
+
+    public function __construct(Configuration $config)
     {
         parent::__construct($config);
     }

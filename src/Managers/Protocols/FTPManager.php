@@ -4,18 +4,19 @@
 namespace Kodilab\Deployer\Managers\Protocols;
 
 
+use Kodilab\Deployer\Configuration;
 use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerInterface;
 
 class FTPManager extends ManagerAbstract implements ManagerInterface
 {
-    public function __construct($config = [])
+    public function __construct(Configuration $config)
     {
-        $this->host = $config['host'];
-        $this->port = is_null($config['port'])? 21 : $config['port'];
-        $this->user = $config['user'];
-        $this->password = $config['password'];
-        $this->path = is_null($config['path'])? "" : $config['path'];
+        $this->host = $config->get('manager.ftp.host');
+        $this->port = is_null($config->get('manager.ftp.port'))? 21 : $config->get('manager.ftp.port');
+        $this->user = $config->get('manager.ftp.user');
+        $this->password = $config->get('manager.ftp.password');
+        $this->path = is_null($config->get('manager.ftp.path'))? "" : $config->get('manager.ftp.path');
 
         parent::__construct($config);
     }

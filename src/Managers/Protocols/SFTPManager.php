@@ -4,6 +4,7 @@
 namespace Kodilab\Deployer\Managers\Protocols;
 
 
+use Kodilab\Deployer\Configuration;
 use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerInterface;
 use phpseclib\Net\SFTP;
@@ -13,13 +14,13 @@ class SFTPManager extends ManagerAbstract implements ManagerInterface
     /** @var SFTP */
     protected $sftp;
 
-    public function __construct($config = [])
+    public function __construct(Configuration $config)
     {
-        $this->host = $config['host'];
-        $this->port = is_null($config['port'])? 21 : $config['port'];
-        $this->user = $config['user'];
-        $this->password = $config['password'];
-        $this->path = is_null($config['path'])? "" : $config['path'];
+        $this->host = $config->get('manager.sftp.host');
+        $this->port = is_null($config->get('manager.sftp.port'))? 21 : $config->get('manager.sftp.port');
+        $this->user = $config->get('manager.sftp.user');
+        $this->password = $config->get('manager.sftp.password');
+        $this->path = is_null($config->get('manager.sftp.path'))? "" : $config->get('manager.sftp.path');
 
         parent::__construct($config);
     }
