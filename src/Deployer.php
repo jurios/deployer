@@ -112,7 +112,7 @@ class Deployer
 
         $this->output->writeln('Listing project files...');
         $this->project = new Project($this->project_path);
-        $this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found.');
+        //$this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found.');
 
 
         $this->manager = ManagerRepository::getManager($this->config);
