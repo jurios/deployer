@@ -42,7 +42,7 @@ follow these steps:
 composer require kodilab/deployer dev-master
 ```
 
-### Configuration?
+### Configuration
 The deployer configuration is an array which is defined when Deployer is instantiated. A configuration example
 is present in `config/config.php`. That file returns an array so you can use it directly in the Deployer instance.
 
