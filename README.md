@@ -20,6 +20,14 @@ environment using SFTP or FTP (at this moment, SFTP and FTP are provided but mor
 It uses git (your project must be included in a Git repository) to compare the versions. And parses the `composer.lock`
 file in order to know which composer packages required by the project are new/updated/removed.
 
+### BUILD file
+In order to let Deployer know the production environment version, it will generate a file called `BUILD` which
+contains the commit reference in the production environment. This file should be reachable for Deployer. 
+If Deployer can't get this file, then it will compare from the first commit of the project. (That means, it will deploy all files tracked)
+
+You can change that behaviour specifying the commit SHA reference manually in the Deployer call. You can see this
+in the `How to use it` section.
+
 ## Getting Started
 
 Deployer has been designed to work in any PHP project (but could be integrated in other kind of project).
@@ -34,14 +42,16 @@ follow these steps:
 composer require kodilab/deployer dev-master
 ```
 
-### Configuration
-WIP
+### Configuration?
+The deployer configuration is an array which is defined when Deployer is instantiated. A configuration example
+is present in `config/config.php`. That file returns an array so you can use it directly in the Deployer instance.
 
-### How to call it?
-WIP
+The `config/config.php` file has comments and explanations so you can modify as you want.
 
-### Example
+### How to use it
 
+This is an example of a script which launch Deployer:
+ 
 ```(php)
 <?php
 
@@ -49,7 +59,17 @@ use Kodilab\Deployer\Deployer;
 
 $config = []; //See "Configuration" section
 
-$deployer = new Deployer($project_path, $config); // See "How to call it" section
+$deployer = new Deployer($project_path, $config);
 $deployer->deploy();
 
 ```
+
+The signature of the Deployer's constructor is:
+
+```(php)
+Deployer(string $project_path, array $config = [], string $from_commit = null)
+```
+
+* **project_path** is the path where the project is present
+* **config** The configuration array
+* **from_commit(optional)** You can define a SHA commit reference instead of download it from the produccion environment.
