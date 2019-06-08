@@ -6,7 +6,6 @@ namespace Kodilab\Deployer\Traits;
 
 use Kodilab\Deployer\Changes\Add;
 use Kodilab\Deployer\Changes\Change;
-use Kodilab\Deployer\Changes\ChangeList;
 use Kodilab\Deployer\Changes\Delete;
 use Kodilab\Deployer\Changes\Modify;
 use Kodilab\Deployer\Changes\Rename;
