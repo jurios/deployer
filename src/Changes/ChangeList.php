@@ -82,7 +82,7 @@ class ChangeList
      */
     public function addIncludedFiles(array $paths)
     {
-        $rules = $this->config->get('include');
+        $rules = $this->config->get('include', []);
 
         /** @var string $path */
         foreach ($paths as $path) {
@@ -162,7 +162,7 @@ class ChangeList
      */
     private function shouldBeIgnored(Change $change)
     {
-        $rules = $this->config->get('ignore');
+        $rules = $this->config->get('ignore', []);
 
         $ignored = false;
 
