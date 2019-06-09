@@ -28,7 +28,7 @@ class Configuration implements Arrayable
      * @param string $path
      * @return array|mixed|null
      */
-    public function get(string $path)
+    public function get(string $path, $default = null)
     {
         $indexes = explode(".", $path);
 
@@ -37,13 +37,13 @@ class Configuration implements Arrayable
         foreach ($indexes as $index) {
 
             if (!isset($pointer[$index])) {
-                return null;
+                return $default;
             }
 
             $pointer = $pointer[$index];
         }
 
-        return $pointer;
+        return !is_null($pointer) ? $pointer : $default;
     }
 
     /**

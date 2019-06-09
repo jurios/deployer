@@ -23,7 +23,7 @@ use Symfony\Component\Console\Output\StreamOutput;
 
 class Deployer
 {
-    const VERSION = '1.0.0-rc1';
+    const VERSION = '1.0.0-rc2';
 
     const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
     const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
@@ -88,9 +88,7 @@ class Deployer
     protected $changeList;
 
     /**
-     * The output interface implementation.
-     *
-     * @var \Illuminate\Console\OutputStyle
+     * @var OutputInterface
      */
     protected $output;
 
@@ -102,9 +100,9 @@ class Deployer
         'BUILD' => self::BUILD_PRODUCTION_FILENAME
     ];
 
-    public function __construct(string $project_path, array $config = [], string $from_commit = null)
+    public function __construct(string $project_path, array $config = [], string $from_commit = null, OutputInterface $output = null)
     {
-        $this->setOutput();
+        $this->output = $output;
         $this->output->writeln('<fg=green;options=bold>Starting deployer ' . self::VERSION .'<fg=default>');
 
         $this->project_path = $project_path;
@@ -112,7 +110,7 @@ class Deployer
 
         $this->output->writeln('Listing project files...');
         $this->project = new Project($this->project_path);
-        //$this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found.');
+        $this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found.');
 
 
         $this->manager = ManagerRepository::getManager($this->config);
