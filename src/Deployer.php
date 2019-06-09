@@ -23,7 +23,7 @@ use Symfony\Component\Console\Output\StreamOutput;
 
 class Deployer
 {
-    const VERSION = '1.0.0-rc1';
+    const VERSION = '1.0.0-rc2';
 
     const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
     const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
