@@ -40,7 +40,7 @@ class Project
         }
 
         return array_filter($this->files, function ($item) use ($filter) {
-            return fnmatch($filter . DIRECTORY_SEPARATOR . '*/*', $item);
+            return fnmatch($filter . DIRECTORY_SEPARATOR . '*', $item);
         });
     }
 
