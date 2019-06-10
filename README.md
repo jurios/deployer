@@ -55,19 +55,14 @@ This is an example of a script which launch Deployer:
 ```(php)
 <?php
 
-use Kodilab\Deployer\Deployer;
-
-$config = []; //See "Configuration" section
-
-$deployer = new Deployer($project_path, $config);
-$deployer->deploy();
+deploy_it($project_path, $config);
 
 ```
 
-The signature of the Deployer's constructor is:
+The signature of the is:
 
 ```(php)
-Deployer(string $project_path, array $config = [], string $from_commit = null)
+deploy_it(string $project_path, array $config = [], string $from_commit = null)
 ```
 
 * **project_path** is the path where the project is present
