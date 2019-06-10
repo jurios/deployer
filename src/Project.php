@@ -5,6 +5,7 @@ namespace Kodilab\Deployer;
 
 
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 class Project
@@ -79,7 +80,7 @@ class Project
     {
         $files = [];
 
-        $splFileInfos = $this->filesystem->allFiles($this->path, false);
+        $splFileInfos = Finder::create()->files()->ignoreDotFiles(true)->in($this->path);
 
         /** @var SplFileInfo $splFileInfo */
         foreach ($splFileInfos as $splFileInfo){
