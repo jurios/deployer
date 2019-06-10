@@ -79,9 +79,32 @@ class VendorDiff
             }
         }
 
+        if (count($this->changes) !== 0) {
+            $this->changes = array_merge($this->changes, $this->addAutoloaderFolder());
+        }
+
         //TODO: If changes isn't empty, then 'bin' folder and autoload folder should be added
 
         return $this->changes;
+    }
+
+    /**
+     * Add autoload folder
+     */
+    private function addAutoloaderFolder()
+    {
+        $changes = [];
+
+        $files = $this->project->files(
+            'vendor' . DIRECTORY_SEPARATOR . 'composer'
+        );
+
+        foreach ($files as $file)
+        {
+            $changes[] = new Add($file);
+        }
+
+        return $changes;
     }
 
     private function addPackage(VendorPackage $package)
