@@ -86,13 +86,7 @@ class ChangeList
 
         /** @var string $path */
         foreach ($paths as $path) {
-            $match = false;
-
-            foreach ($rules as $rule){
-                if (fnmatch($rule, $path)) {
-                    $match = true;
-                }
-            }
+            $match = matchPath($rules, $path);
 
             if ($match) {
                 $change = new Add($path);

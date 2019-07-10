@@ -15,6 +15,7 @@ use Kodilab\Deployer\Changes\Rename;
 use Kodilab\Deployer\Git\Git;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Kodilab\Deployer\Traits\FileLists;
+use Kodilab\Deployer\Triggers\Triggers;
 use Kodilab\Deployer\Vendor\VendorDiff;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\StringInput;
@@ -132,6 +133,9 @@ class Deployer
             $this->vendor = new VendorDiff($this->project_path, $this->project);
             $this->changeList->merge($this->vendor->diff());
         }
+
+        $triggers = new Triggers($this->config, $this->project);
+        $this->changeList->merge($triggers->getTriggeredChanges($this->changeList));
     }
 
     public function __get($name)
@@ -275,17 +279,6 @@ class Deployer
         $commit = $this->git->getEmptyCommit();
 
         return $commit;
-    }
-
-    /**
-     * Set the output
-     */
-    private function setOutput()
-    {
-        $filename = env('APP_ENV') === 'testing' ? 'php://memory' : 'php://stdout';
-
-        $output = new StreamOutput(fopen($filename, 'w'), OutputInterface::VERBOSITY_NORMAL);
-        $this->output = new OutputStyle(new StringInput(''), $output);
     }
 
     /**
