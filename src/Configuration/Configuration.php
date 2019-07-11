@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Kodilab\Deployer;
+namespace Kodilab\Deployer\Configuration;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Translation\ArrayLoader;

@@ -4,7 +4,8 @@
 namespace Kodilab\Deployer\Managers;
 
 
-use Kodilab\Deployer\Configuration;
+
+use Kodilab\Deployer\Configuration\Configuration;
 
 class ManagerAbstract
 {

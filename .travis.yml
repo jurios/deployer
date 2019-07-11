@@ -1,0 +1,13 @@
+language: php
+sudo: false
+
+branches:
+  only:
+    - master
+
+install:
+  - composer install
+
+matrix:
+  include:
+    - php: 7.1

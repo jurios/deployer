@@ -29,4 +29,11 @@ class Rename extends Change
     {
         return $this->to;
     }
+
+    public function is(Change $change)
+    {
+        return parent::is($change)
+            && $this->from() === $change->from()
+            && $this->to() === $change->to();
+    }
 }

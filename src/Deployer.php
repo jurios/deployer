@@ -5,21 +5,22 @@ namespace Kodilab\Deployer;
 
 
 
-use Illuminate\Console\OutputStyle;
 use Kodilab\Deployer\Changes\Add;
 use Kodilab\Deployer\Changes\Change;
 use Kodilab\Deployer\Changes\ChangeList;
 use Kodilab\Deployer\Changes\Delete;
 use Kodilab\Deployer\Changes\Modify;
 use Kodilab\Deployer\Changes\Rename;
+use Kodilab\Deployer\Configuration\Configuration;
+use Kodilab\Deployer\Configuration\Ignores;
+use Kodilab\Deployer\Configuration\Includes;
+use Kodilab\Deployer\Configuration\Triggers;
 use Kodilab\Deployer\Git\Git;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Kodilab\Deployer\Traits\FileLists;
 use Kodilab\Deployer\Vendor\VendorDiff;
 use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\StreamOutput;
 
 class Deployer
 {
@@ -88,6 +89,27 @@ class Deployer
     protected $changeList;
 
     /**
+     * Ignores instance
+     *
+     * @var Ignores
+     */
+    protected $ignores;
+
+    /**
+     * Includes instance
+     *
+     * @var Includes
+     */
+    protected $includes;
+
+    /**
+     * Triggers instance
+     *
+     * @var Triggers
+     */
+    protected $triggers;
+
+    /**
      * @var OutputInterface
      */
     protected $output;
@@ -100,6 +122,15 @@ class Deployer
         'BUILD' => self::BUILD_PRODUCTION_FILENAME
     ];
 
+    /**
+     * Deployer constructor.
+     *
+     * @param string $project_path
+     * @param array $config
+     * @param string|null $from_commit
+     * @param OutputInterface|null $output
+     * @throws \Exception
+     */
     public function __construct(string $project_path, array $config = [], string $from_commit = null, OutputInterface $output = null)
     {
         $this->output = $output;
@@ -114,11 +145,9 @@ class Deployer
 
 
         $this->manager = ManagerRepository::getManager($this->config);
-
         $this->git = new Git($this->project_path);
 
         $this->changeList = new ChangeList($this->config);
-        $this->changeList->addIncludedFiles($this->project->files());
 
         $this->retrieveCommits($from_commit);
 
@@ -132,11 +161,28 @@ class Deployer
             $this->vendor = new VendorDiff($this->project_path, $this->project);
             $this->changeList->merge($this->vendor->diff());
         }
+
+        $this->includes = new Includes($this->config, $this->project);
+        $this->changeList->merge($this->includes->getChanges());
+
+        $this->triggers = new Triggers($this->config, $this->project, $this->changeList);
+        $this->changeList->merge($this->triggers->getChanges());
+
+        $this->ignores = new Ignores($this->config, $this->changeList);
+        //Merge is not used here because getChangeListWithoutIgnores removes existing changes actually. Therefore,
+        // it returns the filtered ChangeList.
+        $this->changeList = $this->ignores->getChangeListWithoutIgnores();
     }
 
+    /**
+     * Read only property access for testing.
+     *
+     * @param $name
+     * @return mixed
+     */
     public function __get($name)
     {
-        if(property_exists($this, $name)) {
+        if (property_exists($this, $name)) {
             return $this->$name;
         }
     }
@@ -146,16 +192,16 @@ class Deployer
      */
     public function deploy()
     {
-        $this->listIgnoredFiles();
         $this->listIncludedFiles();
-
-        sleep(5);
+        $this->listTriggeredFiles();
+        $this->listIgnoredFiles();
 
         $this->listDeployTasks();
 
-        $this->output->writeln('<fg=yellow;options=bold>The deploy process will start in 10 seconds...<fg=default>');
+        $this->output->writeln('<fg=yellow;options=bold>The deploy process will start in 15 seconds...<fg=default>');
         $this->output->writeln('<fg=blue;options=bold>');
-        sleep(10);
+
+        sleep(15);
 
         ProgressBar::setFormatDefinition('custom',
             ' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s% %message%'
@@ -170,7 +216,6 @@ class Deployer
         /** @var Change $change */
         foreach ($this->changeList->changes() as $change)
         {
-
             $status = false;
 
             if (get_class($change) === Add::class) {
@@ -275,17 +320,6 @@ class Deployer
         $commit = $this->git->getEmptyCommit();
 
         return $commit;
-    }
-
-    /**
-     * Set the output
-     */
-    private function setOutput()
-    {
-        $filename = env('APP_ENV') === 'testing' ? 'php://memory' : 'php://stdout';
-
-        $output = new StreamOutput(fopen($filename, 'w'), OutputInterface::VERBOSITY_NORMAL);
-        $this->output = new OutputStyle(new StringInput(''), $output);
     }
 
     /**

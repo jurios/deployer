@@ -4,7 +4,7 @@
 namespace Kodilab\Deployer\Managers\Protocols;
 
 
-use Kodilab\Deployer\Configuration;
+use Kodilab\Deployer\Configuration\Configuration;
 use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerInterface;
 use phpseclib\Net\SFTP;
