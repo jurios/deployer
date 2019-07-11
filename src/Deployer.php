@@ -24,7 +24,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Deployer
 {
-    const VERSION = '1.0.0-rc2';
+    const VERSION = '1.0.0';
 
     const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
     const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
