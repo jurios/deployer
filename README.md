@@ -2,10 +2,8 @@
 [![Build Status](https://travis-ci.com/jurios/deployer.svg?branch=master)](https://travis-ci.com/jurios/deployer)
 
 ## 1 - Disclaimer
-This project is still in a pre-release stage. It should work but could contains unexpected bugs. 
-
 Deployer is an unattended script. However, in order to let you check the changes which Deployer is going to do, it will
-print the change list and wait 10 seconds before start the process. If you see something unexpected, close the process.
+print the change list and wait 15 seconds before start the process. If you see something unexpected, close the process.
 
 What's more, Deployer can be launched with a `simulated mode` where it simulates the deployment process (no changes are 
 done in production) in order to let you check the files which are going to be modified/added/removed.
@@ -34,8 +32,9 @@ in the `How to use it` section.
 
 ## 3 - Getting Started
 
-Deployer has been designed to work in any PHP project (but could be integrated in other kind of project).
-If you are developing a Laravel project, a deployer integration package is available here (WIP),
+Deployer has been designed to work in any PHP project.
+If you are developing a Laravel project, a Laravel integration package is available 
+[here](https://github.com/jurios/laravel-deployer).
 
 You can install deployer into your project with:
 
