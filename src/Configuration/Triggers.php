@@ -1,13 +1,12 @@
 <?php
 
 
-namespace Kodilab\Deployer\Triggers;
+namespace Kodilab\Deployer\Configuration;
 
 
 use Kodilab\Deployer\Changes\Change;
 use Kodilab\Deployer\Changes\ChangeList;
 use Kodilab\Deployer\Changes\Modify;
-use Kodilab\Deployer\Configuration;
 use Kodilab\Deployer\Project;
 
 class Triggers
@@ -40,13 +39,33 @@ class Triggers
      */
     protected $actions;
 
-    public function __construct(Configuration $config, Project $project)
+    /**
+     * Changes added by triggers
+     *
+     * @var array
+     */
+    protected $changes;
+
+    public function __construct(Configuration $config, Project $project, ChangeList $changeList)
     {
+        $this->config = $config;
+        $this->project = $project;
         $this->triggers = $this->config->get('triggers', []);
         $this->actions = array_keys($this->triggers);
+        $this->changes = $this->getTriggeredChanges($changeList);
     }
 
-    public function getTriggeredChanges(ChangeList $changeList)
+    /**
+     * Returns the changes
+     *
+     * @return array
+     */
+    public function getChanges()
+    {
+        return $this->changes;
+    }
+
+    private function getTriggeredChanges(ChangeList $changeList)
     {
         $changes = [];
 

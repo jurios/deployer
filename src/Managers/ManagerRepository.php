@@ -4,7 +4,7 @@
 namespace Kodilab\Deployer\Managers;
 
 
-use Kodilab\Deployer\Configuration;
+use Kodilab\Deployer\Configuration\Configuration;
 use Kodilab\Deployer\Managers\Protocols\FTPManager;
 use Kodilab\Deployer\Managers\Protocols\SFTPManager;
 use Kodilab\Deployer\Managers\Protocols\SimulateManager;

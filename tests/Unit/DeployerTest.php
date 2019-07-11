@@ -4,7 +4,7 @@
 namespace Kodilab\Deployer\Tests\Unit;
 
 
-use Kodilab\Deployer\Configuration;
+use Kodilab\Deployer\Configuration\Configuration;
 use Kodilab\Deployer\Deployer;
 use Kodilab\Deployer\Managers\Protocols\SimulateManager;
 use Kodilab\Deployer\Tests\TestCase;

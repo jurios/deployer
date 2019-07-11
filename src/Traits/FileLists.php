@@ -42,7 +42,18 @@ trait FileLists
         $this->output->writeln("\n\n");
         $this->output->title('Included files list');
 
-        $this->displayFiles($this->changeList->includes());
+        $this->displayFiles($this->includes->getChanges());
+    }
+
+    /**
+     * Show triggered files
+     */
+    private function listTriggeredFiles()
+    {
+        $this->output->writeln("\n\n");
+        $this->output->title('Triggered files list');
+
+        $this->displayFiles($this->triggers->getChanges());
     }
 
     private function displayFiles(array $list)
