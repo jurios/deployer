@@ -1,4 +1,5 @@
 # Deployer
+[![Build Status](https://travis-ci.com/jurios/deployer.svg?branch=master)](https://travis-ci.com/jurios/deployer)
 
 ## 1 - Disclaimer
 This project is still in a pre-release stage. It should work but could contains unexpected bugs. 
