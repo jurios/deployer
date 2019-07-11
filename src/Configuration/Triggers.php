@@ -70,14 +70,12 @@ class Triggers
         $changes = [];
 
         /** @var Change $change */
-        foreach ($changeList as $change) {
-
+        foreach ($changeList->changes() as $change) {
             if (matchPath($this->actions, $change->path(), $matched_actions)) {
-
                 $files = $this->getTriggeredFiles($matched_actions);
 
                 foreach ($files as $file) {
-                    $changes[] = new Modify($file);
+                    $changes[$file] = new Modify($file);
                 }
             }
         }
@@ -99,7 +97,7 @@ class Triggers
             $rules = $this->triggers[$action];
 
             foreach ($rules as $rule) {
-                array_merge($files, $this->project->files($rule));
+                $files = array_merge($files, $this->project->files($rule));
             }
         }
 

@@ -43,7 +43,7 @@ class Ignores
     public function __construct(Configuration $config, ChangeList $changeList)
     {
         $this->changeList = $changeList;
-        $this->ignores = $config->get('ignores', []);
+        $this->ignores = $config->get('ignore', []);
     }
 
     /**
@@ -53,8 +53,9 @@ class Ignores
      */
     public function getChangeListWithoutIgnores()
     {
-        foreach ($this->changeList as $change) {
+        $this->changes = [];
 
+        foreach ($this->changeList->changes() as $change) {
             if ($this->shouldBeIgnored($change)) {
                 $this->changes[] = $change;
                 $this->changeList->remove($change);

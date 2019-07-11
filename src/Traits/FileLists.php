@@ -31,7 +31,7 @@ trait FileLists
         $this->output->writeln("\n\n");
         $this->output->title('Ignored files list');
 
-        $this->displayFiles($this->changeList->ignores());
+        $this->displayFiles($this->ignores->getChanges());
     }
 
     /**

@@ -40,7 +40,7 @@ class Includes
     public function __construct(Configuration $config, Project $project)
     {
         $this->project = $project;
-        $this->includes = $config->get('includes', []);
+        $this->includes = $config->get('include', []);
 
         $this->changes = $this->getIncludesChanges();
     }
