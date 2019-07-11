@@ -27,7 +27,7 @@ class Git
             $dest = $path;
         }
 
-        $command = 'git show ' . $commit . ':' . $path . ' > ' . $dest;
+        $command = 'git show ' . $commit . ':' . $path . ' > ' . $dest . ' 2> /dev/null';
 
         exec($command);
     }
