@@ -58,7 +58,7 @@ class ChangeList
     public function remove(Change $change)
     {
         for ($i = 0; $i < count($this->changes); $i++) {
-            if ($this->changes[$i]->is($change)) {
+            if (isset($this->changes[0]) && $this->changes[$i]->is($change)) {
                 unset($this->changes[$i]);
             }
         }
