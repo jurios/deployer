@@ -70,7 +70,7 @@ trait FileLists
             }
 
             if (get_class($change) === Rename::class) {
-                $this->output->writeln('<fg=yellow>[R] ' . $change->from() . ' => ' . $this->changes->to() . '<fg=default>');
+                $this->output->writeln('<fg=yellow>[R] ' . $change->from() . ' => ' . $change->to() . '<fg=default>');
             }
 
             if (get_class($change) === Delete::class) {
