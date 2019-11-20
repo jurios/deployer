@@ -10,6 +10,9 @@ use Illuminate\Filesystem\Filesystem;
 class TestCase extends \PHPUnit\Framework\TestCase
 {
     const LARAVEL_PROJECT = __DIR__ . '/resources/laravel-app';
+
+    const FIXTURES_PATH = __DIR__ . '/fixtures';
+
     protected $faker;
 
     /** @var Filesystem */
@@ -37,5 +40,17 @@ class TestCase extends \PHPUnit\Framework\TestCase
         $laravel_instance_path = __DIR__ . '/../vendor/orchestra/testbench-core/laravel';
 
         $this->filesystem->copyDirectory($laravel_instance_path, self::LARAVEL_PROJECT);
+    }
+
+    /**
+     * Returns the decoded composer.lock mock file
+     *
+     * @return array
+     */
+    protected function loadMockComposerLock(): array
+    {
+        $content = file_get_contents(static::FIXTURES_PATH . DIRECTORY_SEPARATOR . 'composer.lock');
+
+        return json_decode($content, true);
     }
 }
