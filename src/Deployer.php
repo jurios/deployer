@@ -17,6 +17,8 @@ use Kodilab\Deployer\Configuration\Includes;
 use Kodilab\Deployer\Configuration\Triggers;
 use Kodilab\Deployer\Git\Commit;
 use Kodilab\Deployer\Git\Git;
+use Kodilab\Deployer\Helpers\Str;
+use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Kodilab\Deployer\Traits\FileLists;
 use Kodilab\Deployer\Vendor\VendorDiff;
@@ -27,11 +29,12 @@ class Deployer
 {
     const VERSION = '1.0.0';
 
-    const BUILD_PRODUCTION_FILENAME = 'BUILD.production';
-    const COMPOSER_LOCK_PRODUCTION_FILENAME = 'composer.lock.production';
-    const COMPOSER_JSON_PRODUCTION_FILENAME = 'composer.json.production';
+    const PRODUCTION_EXTENSION = 'production';
 
-    use FileLists;
+    const BUILD_FILEPATH = 'BUILD';
+    const PRODUCTION_BUILD_FILEPATH = 'BUILD.production';
+    const PRODUCTION_COMPOSERLOCK_FILEPATH = 'composer.lock.production';
+
 
     /**
      * Project path
@@ -48,13 +51,6 @@ class Deployer
     protected $config;
 
     /**
-     * Deployment manager
-     *
-     * @var Managers\Protocols\FTPManager|Managers\Protocols\SFTPManager|Managers\Protocols\SimulateManager
-     */
-    protected $manager;
-
-    /**
      * Git helper class
      *
      * @var Git
@@ -62,309 +58,163 @@ class Deployer
     protected $git;
 
     /**
-     * Vendor diff helper class
-     *
-     * @var VendorDiff
-     */
-    protected $vendor;
-
-    /**
-     * Production commit
-     *
-     * @var Commit
-     */
-    protected $production_commit;
-
-    /**
-     * Current environment commit
-     *
-     * @var Commit
-     */
-    protected $local_commit;
-
-    /**
-     * Change list
-     *
-     * @var ChangeList
-     */
-    protected $changeList;
-
-    /**
-     * Ignores instance
-     *
-     * @var Ignores
-     */
-    protected $ignores;
-
-    /**
-     * Includes instance
-     *
-     * @var Includes
-     */
-    protected $includes;
-
-    /**
-     * Triggers instance
-     *
-     * @var Triggers
-     */
-    protected $triggers;
-
-    /**
      * @var OutputInterface
      */
     protected $output;
 
     /**
-     * Files to be downloaded before start diff process
-     * @var array
+     * @var ManagerAbstract
      */
-    protected $download_files = [
-        'BUILD' => self::BUILD_PRODUCTION_FILENAME
-    ];
+    protected $manager;
 
     /**
      * Deployer constructor.
      *
      * @param string $project_path
      * @param array $config
-     * @param string|null $from_commit
      * @param OutputInterface|null $output
      * @throws \Exception
      */
-    public function __construct(string $project_path, array $config = [], string $from_commit = null, OutputInterface $output = null)
+    public function __construct(string $project_path, array $config = [], OutputInterface $output = null)
     {
         $this->output = $output;
         $this->output->writeln('<fg=green;options=bold>Starting deployer ' . self::VERSION .'<fg=default>');
 
         $this->project_path = $project_path;
         $this->config = new Configuration($config);
-
-        $this->output->writeln('Listing project files...');
-        $this->project = new Project($this->project_path);
-        $this->output->writeln('<fg=green>' . count($this->project->files()) . ' files found.');
-
-
         $this->manager = ManagerRepository::getManager($this->config);
         $this->git = new Git($this->project_path);
-
-        $this->changeList = new ChangeList($this->config);
-
-        $this->retrieveCommits($from_commit);
-
-        $this->checkoutProductionComposerFiles();
-
-        $this->output->writeln("<fg=blue>Getting the difference between " . $this->production_commit . " and " . $this->local_commit);
-        $diff = $this->git->diff($this->production_commit, $this->local_commit);
-        $this->changeList->merge($diff->changes());
-
-        if ($diff->isVendorChanged()) {
-            $this->vendor = new VendorDiff($this->project_path, $this->project);
-            $this->changeList->merge($this->vendor->diff());
-        }
-
-        $this->includes = new Includes($this->config, $this->project);
-        $this->changeList->merge($this->includes->getChanges());
-
-        $this->triggers = new Triggers($this->config, $this->project, $this->changeList);
-        $this->changeList->merge($this->triggers->getChanges());
-
-        $this->ignores = new Ignores($this->config, $this->changeList);
-        //Merge is not used here because getChangeListWithoutIgnores removes existing changes actually. Therefore,
-        // it returns the filtered ChangeList.
-        $this->changeList = $this->ignores->getChangeListWithoutIgnores();
-    }
-
-    /**
-     * Read only property access for testing.
-     *
-     * @param $name
-     * @return mixed
-     */
-    public function __get($name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
     }
 
     /**
      * Deploy process
+     * @param string|null $production_commit
+     * @param string|null $local_commit
+     * @throws \Exception
      */
-    public function deploy()
+    public function deploy(string $production_commit = null, string $local_commit = null)
     {
-        $this->listIncludedFiles();
-        $this->listTriggeredFiles();
-        $this->listIgnoredFiles();
+        // Get the given commit or get it remotely from production
+        $production_commit = $this->getProductionCommit($production_commit);
 
-        $this->listDeployTasks();
+        // Get the given commit or get the last one in the log
+        $local_commit = $this->getLocalCommit($local_commit);
 
-        $this->output->writeln('<fg=yellow;options=bold>The deploy process will start in 15 seconds...<fg=default>');
-        $this->output->writeln('<fg=blue;options=bold>');
+        $this->checkoutComposerLockTo($production_commit, static::PRODUCTION_COMPOSERLOCK_FILEPATH);
+        $this->generateLocalBuildFile($local_commit);
 
-        sleep(15);
 
-        ProgressBar::setFormatDefinition('custom',
-            ' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s% %message%'
-        );
-
-        $progressBar = new ProgressBar($this->output, count($this->changeList->changes()));
-        $progressBar->setMessage('Starting deploy...');
-        $progressBar->setFormat('custom');
-
-        $progressBar->start();
-
-        /** @var Change $change */
-        foreach ($this->changeList->changes() as $change)
-        {
-            $status = false;
-
-            if (get_class($change) === Add::class) {
-                $progressBar->setMessage('Uploading ' . $change->path());
-                $this->manager->upload($change->path());
-            }
-
-            if (get_class($change) === Modify::class) {
-                $progressBar->setMessage('Uploading ' . $change->path());
-                $this->manager->upload($change->path());
-            }
-
-            if (get_class($change) === Rename::class) {
-                $progressBar->setMessage('Removing ' . $change->from());
-                $this->manager->delete($change->from());
-                $progressBar->setMessage('Uploading ' . $change->from());
-                $this->manager->upload($change->to(), $change->to());
-            }
-
-            if (get_class($change) === Delete::class) {
-                $progressBar->setMessage('Removing ' . $change->path());
-                $this->manager->delete($change->path());
-            }
-
-            $progressBar->advance();
-        }
-
-        $progressBar->finish();
-
-        $this->output->writeln('<fg=default>');
-
-        $result = $this->deployBuildFile();
-
-        if ($result) {
-            $this->output->writeln('<fg=green>BUILD file deployed<fg=default>');
-        } else {
-            $this->output->writeln('<fg=red>BUILD file NOT deployed<fg=default>');
-        }
+        $this->output->writeln("Deployment finished successfuly. Generating new BUILD file");
     }
 
     /**
-     * Downlaod, using the manger, the deployer files needed from production
+     * Returns Commit from the given reference or get it remotely
+     *
+     * @param string|null $commit
+     * @return Commit
+     * @throws Exceptions\InvalidCommitSHAReference
+     * @throws \Exception
+     */
+    protected function getProductionCommit(string $commit = null)
+    {
+        if (!is_null($commit)) {
+            return new Commit($commit);
+        }
+
+        try {
+            $this->downloadBuildFile();
+        } catch (\Exception $e) {
+            $this->output->writeln('Production BUILD file not found. Starting first deployment');
+            /*
+             * If the file does not exists in production means that this is the first deployment. In this special case,
+             * we use the "empty commit". This is an special commit which refers to the initial state where the project
+             * doesn't contains any file in order to upload all files
+             */
+            $this->generateProductionBuildFileWithEmptyCommit();
+        }
+
+        return new Commit($this->getBuildFileContent());
+    }
+
+    /**
+     * Returns a Commit from the given commit or get the last commit performed in the project
+     *
+     * @param string|null $commit
+     * @return Commit
+     * @throws Exceptions\InvalidCommitSHAReference
+     * @throws \Exception
+     */
+    protected function getLocalCommit(string $commit = null)
+    {
+        if (!is_null($commit)) {
+            return new Commit($commit);
+        }
+
+        return $this->git->getLastCommit();
+    }
+
+    /**
+     * Generates a build.production file with a "empty commit" reference on it in order to start
+     * the first deployment process
+     *
+     * @throws \Exception
+     */
+    protected function generateProductionBuildFileWithEmptyCommit()
+    {
+        file_put_contents(
+            $this->git->getEmptyCommit(),
+            static::PRODUCTION_BUILD_FILEPATH
+        );
+    }
+
+    /**
+     * Download the BUILD file from production
      *
      */
     private function downloadBuildFile()
     {
-        foreach ($this->download_files as $prod_path => $local_path) {
-            try {
-                $this->manager->download($prod_path, $this->project_path . DIRECTORY_SEPARATOR . $local_path);
-            } catch (\Exception $e) {
-                printf("File %s not found.\n", $prod_path);
-            }
-        }
+        $this->manager->download(self::BUILD_FILEPATH, self::PRODUCTION_BUILD_FILEPATH);
     }
 
     /**
-     * Get the production and local commits
-     *
-     * @param string $from_commit
-     * @throws \Exception
-     */
-    private function retrieveCommits(string $from_commit = null)
-    {
-        if(is_null($from_commit)) {
-            $this->downloadBuildFile();
-        }
-
-        $this->local_commit = $this->git->getLastCommit();
-        $this->production_commit = !is_null($from_commit) ? $from_commit : $this->getProductionCommitFromBuildFile();
-    }
-
-    /**
-     * Get the production commit from the buid file
+     * Get the production commit from the production BUILD file
      *
      * @return array|false|mixed|string|null
      * @throws \Exception
      */
-    private function getProductionCommitFromBuildFile()
+    private function getBuildFileContent()
     {
-        if (!is_null($this->config->get('production_commit'))) {
-            $commit = $this->config->get('production_commit');
-
-            if (!isCommitValid($commit)) {
-                new \Exception('The configuration commit is not valid');
-            }
-
-            return $commit;
+        if (!file_exists(self::PRODUCTION_BUILD_FILEPATH)) {
+            throw new \Exception('Production BUILD file not found:' . self::PRODUCTION_BUILD_FILEPATH);
         }
 
-        if (file_exists($this->project_path . DIRECTORY_SEPARATOR . self::BUILD_PRODUCTION_FILENAME)) {
-            $commit = file_get_contents(self::BUILD_PRODUCTION_FILENAME);
-            $commit = str_replace("\n", "", $commit);
-
-            if (!isCommitValid($commit)) {
-                new \Exception('The production commit is not valid');
-            }
-
-            return $commit;
-        }
-
-        printf("BUILD file not found. Using first project commit as reference\n");
-        $commit = $this->git->getEmptyCommit();
+        $commit = file_get_contents(self::PRODUCTION_BUILD_FILEPATH);
+        $commit = str_replace("\n", "", $commit);
 
         return $commit;
     }
 
     /**
-     * Get the production version files
+     * Checkout the composer.lock file and save it to path
+     *
+     * @param Commit $production_commit
+     * @param string $path
      */
-    private function checkoutProductionComposerFiles()
+    private function checkoutComposerLockTo(Commit $production_commit, string $path)
     {
         $this->git->checkoutFileToCommit(
-            'composer.lock', $this->production_commit, $this->project_path . DIRECTORY_SEPARATOR . 'composer.lock.production'
+            'composer.lock', $production_commit, $path
         );
-    }
-
-    /**
-     * Deploy the new BUILD file
-     *
-     * @return bool
-     */
-    private function deployBuildFile()
-    {
-        printf("Deployment finished successfuly. Generating new BUILD file\n");
-
-        $result = $this->tagBuild();
-
-        if (!is_null($result)) {
-            $status = $this->manager->upload($result->path());
-            $result = $status;
-        }
-        return $result;
     }
 
     /**
      * Generate the BUILD file to be deployed
      *
-     * @return Modify|null
+     * @param Commit $local_commit
+     * @return void
      */
-    private function tagBuild()
+    private function generateLocalBuildFile(Commit $local_commit)
     {
-        $build = $this->project->generateFile('BUILD', $this->local_commit);
-
-        if (!$build) {
-            printf("BUILD file can not be created\n");
-            return null;
-        }
-
-        return new Modify('BUILD');
+        file_put_contents(self::BUILD_FILEPATH, $local_commit->getReference());
     }
 }
