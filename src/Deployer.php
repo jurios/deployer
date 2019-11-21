@@ -15,6 +15,7 @@ use Kodilab\Deployer\Configuration\Configuration;
 use Kodilab\Deployer\Configuration\Ignores;
 use Kodilab\Deployer\Configuration\Includes;
 use Kodilab\Deployer\Configuration\Triggers;
+use Kodilab\Deployer\Git\Commit;
 use Kodilab\Deployer\Git\Git;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Kodilab\Deployer\Traits\FileLists;
@@ -70,14 +71,14 @@ class Deployer
     /**
      * Production commit
      *
-     * @var array|false|mixed|string|null
+     * @var Commit
      */
     protected $production_commit;
 
     /**
      * Current environment commit
      *
-     * @var mixed|null
+     * @var Commit
      */
     protected $local_commit;
 
@@ -327,11 +328,7 @@ class Deployer
      */
     private function checkoutProductionComposerFiles()
     {
-        $this->git->checkout(
-            'composer.json', $this->production_commit, $this->project_path . DIRECTORY_SEPARATOR . 'composer.json.production'
-        );
-
-        $this->git->checkout(
+        $this->git->checkoutFileToCommit(
             'composer.lock', $this->production_commit, $this->project_path . DIRECTORY_SEPARATOR . 'composer.lock.production'
         );
     }

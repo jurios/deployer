@@ -19,11 +19,14 @@ class Git
     }
 
     /**
-     * @param string $from
-     * @param string $to
-     * @return Diff\Entries\EntryCollection
+     * Perform a diff and returns the parser result
+     *
+     * @param Commit $from
+     * @param Commit $to
+     * @return DiffParser
+     * @throws \Exception
      */
-    public function diff(string $from, string $to)
+    public function diff(Commit $from, Commit $to)
     {
         $diff = null;
 
@@ -32,13 +35,20 @@ class Git
         return (new DiffParser())->parse($diff);
     }
 
-    public function checkout(string $path, string $commit, string $dest = null)
+    /**
+     * Save the result of checkout a file
+     *
+     * @param string $filePath
+     * @param Commit $commit
+     * @param string|null $savePath
+     */
+    public function checkoutFileToCommit(string $filePath, Commit $commit, string $savePath = null)
     {
-        if (is_null($dest)) {
-            $dest = $path;
+        if (is_null($savePath)) {
+            $savePath = $filePath;
         }
 
-        $command = 'git show ' . $commit . ':' . $path . ' > ' . $dest . ' 2> /dev/null';
+        $command = 'git show ' . $commit . ':' . $filePath . ' > ' . $savePath . ' 2> /dev/null';
 
         exec($command);
     }
@@ -46,7 +56,7 @@ class Git
     /**
      * Returns the last commit
      *
-     * @return mixed|null
+     * @return Commit
      * @throws \Exception
      */
     public function getLastCommit()
@@ -56,17 +66,14 @@ class Git
 
         $commit = $this->cleanExecOutputCommit($commit);
 
-        if (!isCommitValid($commit)) {
-            new \Exception('The last commit is not valid');
-        }
-
-        return $commit;
+        return new Commit($commit);
     }
 
     /**
-     * Returns the "nothing" commit in order to list all tracked files
+     * Returns the "empty" commit (that means, when there isn't files. This is not the same one as the first commit
+     * of the project where files are added)
      *
-     * @return mixed|null
+     * @return Commit
      * @throws \Exception
      */
     public function getEmptyCommit()
@@ -80,11 +87,7 @@ class Git
 
         $commit = $this->cleanExecOutputCommit($commit);
 
-        if (!isCommitValid($commit)) {
-            new \Exception('Empty commit is not valid');
-        }
-
-        return $commit;
+        return new Commit($commit);
     }
 
     /**
