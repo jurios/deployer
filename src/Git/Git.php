@@ -6,6 +6,8 @@ namespace Kodilab\Deployer\Git;
 
 
 
+use Kodilab\Deployer\Git\Diff\DiffParser;
+
 class Git
 {
     /** @var string */
@@ -16,9 +18,18 @@ class Git
         $this->project_path = $project_path;
     }
 
+    /**
+     * @param string $from
+     * @param string $to
+     * @return Diff\Entries\EntryCollection
+     */
     public function diff(string $from, string $to)
     {
-        return new Diff($this->project_path, $from, $to);
+        $diff = null;
+
+        exec('git diff --name-status ' . $from . " " . $to, $diff);
+
+        return (new DiffParser())->parse($diff);
     }
 
     public function checkout(string $path, string $commit, string $dest = null)
