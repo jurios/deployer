@@ -39,6 +39,12 @@ class DeployCommand extends Command
             ->setDescription('Deploy the project');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|void|null
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
@@ -46,10 +52,9 @@ class DeployCommand extends Command
         $deployer = new Deployer(
             $this->project_path,
             $this->config,
-            $this->production_commit,
             $io
         );
 
-        $deployer->deploy();
+        $deployer->deploy($this->production_commit);
     }
 }

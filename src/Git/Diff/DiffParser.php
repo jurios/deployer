@@ -4,8 +4,7 @@
 namespace Kodilab\Deployer\Git\Diff;
 
 
-use Kodilab\Deployer\Git\Diff\Entries\Entry;
-use Kodilab\Deployer\Git\Diff\Entries\EntryCollection;
+use Kodilab\Deployer\Changes\Change;
 use Kodilab\Deployer\Helpers\Str;
 
 class DiffParser
@@ -15,13 +14,15 @@ class DiffParser
     const DELETED = 'D';
     const RENAMED = 'R';
 
+    const REASON = 'git diff';
+
     /**
      * @var bool
      */
     protected $composerlock_changed;
 
     /**
-     * @var EntryCollection
+     * @var array
      */
     protected $entries;
 
@@ -38,7 +39,7 @@ class DiffParser
      */
     public function parse(array $output)
     {
-        $this->entries = new EntryCollection();
+        $this->entries = [];
 
         foreach ($output as $line) {
 
@@ -57,7 +58,7 @@ class DiffParser
                 $this->composerlock_changed = true;
             }
 
-            $this->entries->add(Entry::make($status, $source, $destination));
+            $this->entries[] = Change::make($status, $source, $destination, static::REASON);
         }
 
         return $this;
@@ -71,7 +72,7 @@ class DiffParser
     /**
      * Returns the entries generated after parse the diff output
      *
-     * @return EntryCollection|null
+     * @return array|null
      */
     public function getEntries()
     {

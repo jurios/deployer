@@ -6,34 +6,29 @@ namespace Kodilab\Deployer\Changes;
 
 class Rename extends Change
 {
-    /** @var string */
-    protected $from;
-
-    /** @var string */
-    protected $to;
-
-    public function __construct(string $from, string $to)
+    public function __construct(string $source, string $destination, string $reason = 'unknown')
     {
-        parent::__construct($to);
-
-        $this->from = $from;
-        $this->to = $to;
+        parent::__construct($source, $destination, $reason);
     }
 
-    public function from()
+    /**
+     * Returns the status label text (renamed, added...)
+     *
+     * @return string
+     */
+    public function getLabeledStatus()
     {
-        return $this->from;
+        return 'Renamed';
     }
 
-    public function to()
-    {
-        return $this->to;
-    }
 
-    public function is(Change $change)
+    /**
+     * Returns the output color
+     *
+     * @return mixed
+     */
+    public function getColor()
     {
-        return parent::is($change)
-            && $this->from() === $change->from()
-            && $this->to() === $change->to();
+        return 'cyan';
     }
 }

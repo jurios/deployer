@@ -4,12 +4,14 @@
 namespace Kodilab\Deployer\Tests\Unit\Git\Diff;
 
 
+use Kodilab\Deployer\Changes\Add;
+use Kodilab\Deployer\Changes\Change;
+use Kodilab\Deployer\Changes\Delete;
+use Kodilab\Deployer\Changes\Modify;
+use Kodilab\Deployer\Changes\Rename;
 use Kodilab\Deployer\Exceptions\DiffEntryStatusUnknown;
 use Kodilab\Deployer\Git\Diff\DiffParser;
-use Kodilab\Deployer\Git\Diff\Entries\Add;
-use Kodilab\Deployer\Git\Diff\Entries\Delete;
-use Kodilab\Deployer\Git\Diff\Entries\Modify;
-use Kodilab\Deployer\Git\Diff\Entries\Rename;
+use Kodilab\Deployer\Support\Collection;
 use Kodilab\Deployer\Tests\TestCase;
 
 class DiffParserTest extends TestCase
@@ -27,12 +29,17 @@ class DiffParserTest extends TestCase
         ];
 
         $diff = (new DiffParser())->parse($output);
-        $entries = $diff->getEntries();
+        $entries_collection = new Collection();
 
-        $added_entry = $entries->where('source', $add_path)->first();
-        $modified_entry = $entries->where('source', $modified_path)->first();
-        $deleted_entry = $entries->where('source', $deleted_path)->first();
-        $renamed_entry = $entries->where('source', $rename_source_path)
+        /** @var Change $entry */
+        foreach ($diff->getEntries() as $entry) {
+            $entries_collection->add($entry);
+        }
+
+        $added_entry = $entries_collection->where('source', $add_path)->first();
+        $modified_entry = $entries_collection->where('source', $modified_path)->first();
+        $deleted_entry = $entries_collection->where('source', $deleted_path)->first();
+        $renamed_entry = $entries_collection->where('source', $rename_source_path)
             ->where('destination', $rename_destination_path)->first();
 
         $this->assertNotNull($added_entry);

@@ -11,6 +11,8 @@ use Kodilab\Deployer\Changes\ChangeList;
 use Kodilab\Deployer\Changes\Delete;
 use Kodilab\Deployer\Changes\Modify;
 use Kodilab\Deployer\Changes\Rename;
+use Kodilab\Deployer\ComposerLock\ComposerLock;
+use Kodilab\Deployer\ComposerLock\ComposerLockComparator;
 use Kodilab\Deployer\Configuration\Configuration;
 use Kodilab\Deployer\Configuration\Ignores;
 use Kodilab\Deployer\Configuration\Includes;
@@ -24,6 +26,7 @@ use Kodilab\Deployer\Traits\FileLists;
 use Kodilab\Deployer\Vendor\VendorDiff;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Deployer
 {
@@ -75,10 +78,10 @@ class Deployer
      * @param OutputInterface|null $output
      * @throws \Exception
      */
-    public function __construct(string $project_path, array $config = [], OutputInterface $output = null)
+    public function __construct(string $project_path, array $config = [], SymfonyStyle $output = null)
     {
         $this->output = $output;
-        $this->output->writeln('<fg=green;options=bold>Starting deployer ' . self::VERSION .'<fg=default>');
+        $this->output->title('<fg=green;options=bold>Starting deployer ' . self::VERSION .'<fg=default>');
 
         $this->project_path = $project_path;
         $this->config = new Configuration($config);
@@ -100,9 +103,28 @@ class Deployer
         // Get the given commit or get the last one in the log
         $local_commit = $this->getLocalCommit($local_commit);
 
-        $this->checkoutComposerLockTo($production_commit, static::PRODUCTION_COMPOSERLOCK_FILEPATH);
+        $changeList = new ChangeList($this->config);
+
+        $this->checkoutComposerLockTo($production_commit, self::PRODUCTION_COMPOSERLOCK_FILEPATH);
+
+        $composerlock_local = new ComposerLock(json_decode(file_get_contents('composer.lock'), true));
+        $composerlock_production = new ComposerLock(json_decode(file_get_contents(self::PRODUCTION_COMPOSERLOCK_FILEPATH), true));
+
         $this->generateLocalBuildFile($local_commit);
 
+        $this->output->writeln(
+            sprintf("Indexing changes from <fg=cyan;options=bold>%s</> to <fg=cyan;options=bold>%s</>",
+                $production_commit, $local_commit
+            )
+        );
+
+        $diff = $this->git->diff($production_commit, $local_commit);
+        $changeList->merge($diff->getEntries());
+
+        $dep_diff = (new ComposerLockComparator($composerlock_local, $composerlock_production))->compare();
+        $changeList->merge($dep_diff);
+
+        $changeList->outputConfirmedList($this->output);
 
         $this->output->writeln("Deployment finished successfuly. Generating new BUILD file");
     }
@@ -119,6 +141,10 @@ class Deployer
     {
         if (!is_null($commit)) {
             return new Commit($commit);
+        }
+
+        if (is_null($commit) && $this->config->get('manager.protocol') === 'simulate') {
+            throw new \InvalidArgumentException('A production commit must be provided');
         }
 
         try {

@@ -25,14 +25,22 @@ class Dependency extends JSONComponent
     {
         return [
             'name' => ['required', 'string', function($attribute, $value, $fail) {
-                if (!preg_match("/^[a-zA-Z0-9-]*\/[a-zA-Z0-9-]*$/", $value)) {
+                if (!preg_match("/^[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]*$/", $value)) {
                     $fail('Package does not follow the format publisher/package');
                 }
             }],
             'dist.reference' => ['required', 'string'],
             'type' => ['required', 'string'],
-            'bin'  => ['string']
+            'bin'  => ['array']
         ];
+    }
+
+    /**
+     * Returns the dependency path
+     */
+    public function getPath()
+    {
+        return 'vendor/' . $this->attributes['name'];
     }
 
     /**

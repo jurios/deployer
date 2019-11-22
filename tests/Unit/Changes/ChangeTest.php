@@ -1,44 +1,30 @@
 <?php
 
 
-namespace Kodilab\Deployer\Tests\Unit\Changes;
+namespace Kodilab\Deployer\Tests\Unit\Git\Diff\Entries;
 
 
-use Illuminate\Foundation\Testing\WithFaker;
-use Kodilab\Deployer\Changes\Change;
+use Kodilab\Deployer\Changes\Delete;
 use Kodilab\Deployer\Changes\Rename;
 use Kodilab\Deployer\Tests\TestCase;
 
 class ChangeTest extends TestCase
 {
-    use WithFaker;
-
-    public function test_is_returns_true_if_both_changes_are_the_same_one()
+    public function test_hasSameSource_should_return_true_if_two_entries_has_the_same_source()
     {
-        $change = new Change($this->faker->paragraph);
+        $entry = new Delete($this->faker->name);
 
-        $cloned_change = clone $change;
+        $entry2 = new Rename($entry->getSource(), $this->faker->name);
 
-        $other_change = new Change($this->faker->paragraph);
-
-        $this->assertTrue($change->is($cloned_change));
-        $this->assertFalse($change->is($other_change));
+        $this->assertTrue($entry->hasSameSource($entry2));
     }
 
-    public function test_is_returns_true_if_rename_change_from_and_to_are_equals()
+    public function test_hasSameSource_should_return_false_if_two_entries_has_not_the_same_source()
     {
-        $rename = new Rename($this->faker->paragraph, $this->faker->paragraph);
+        $entry = new Delete($this->faker->name);
 
-        $cloned_rename = clone $rename;
+        $entry2 = new Delete($this->faker->name);
 
-        $partial_rename = new Rename($rename->from(), $this->faker->paragraph);
-        $other_partial_rename = new Rename($this->faker->paragraph, $rename->to());
-
-        $other_rename = new Rename($this->faker->paragraph, $this->faker->paragraph);
-
-        $this->assertTrue($rename->is($cloned_rename));
-        $this->assertFalse($rename->is($partial_rename));
-        $this->assertFalse($rename->is($other_partial_rename));
-        $this->assertFalse($rename->is($other_rename));
+        $this->assertFalse($entry->hasSameSource($entry2));
     }
 }

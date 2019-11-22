@@ -6,13 +6,16 @@ namespace Kodilab\Deployer\Changes;
 
 
 use Kodilab\Deployer\Configuration\Configuration;
+use Kodilab\Deployer\Exceptions\ChangeIncoherenceException;
+use Kodilab\Deployer\Support\Collection;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class ChangeList
 {
     /**
      * Change list
      *
-     * @var array
+     * @var Collection
      */
     protected $changes;
 
@@ -26,64 +29,78 @@ class ChangeList
     public function __construct(Configuration $config)
     {
         $this->config = $config;
-        $this->changes = [];
+        $this->changes = new Collection();
     }
 
     /**
-     * Returns the change list
-     *
-     * @return array
-     */
-    public function changes()
-    {
-        $this->sortChanges();
-        return $this->changes;
-    }
-
-    /**
-     * Add a change into the change list
-     *
      * @param Change $change
+     * @return ChangeList
+     * @throws ChangeIncoherenceException
      */
     public function add(Change $change)
     {
-        $this->changes[] = $change;
+        $this->validateEntryCoherence($change);
+
+        $this->changes->put($change->getSource(), $change);
+
+        $this->changes = $this->changes->sortKeys();
+
+        return $this;
     }
 
     /**
-     * Remove a change from the change list
-     *
-     * @param Change $change
+     * @param mixed $items
+     * @return $this|Collection
+     * @throws ChangeIncoherenceException
      */
-    public function remove(Change $change)
+    public function merge($items)
     {
-        for ($i = 0; $i < count($this->changes); $i++) {
-            if (isset($this->changes[0]) && $this->changes[$i]->is($change)) {
-                unset($this->changes[$i]);
+        foreach ($items as $item) {
+            $this->add($item);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Change $change
+     * @throws ChangeIncoherenceException
+     */
+    protected function validateEntryCoherence(Change $change)
+    {
+        /** @var Change $item */
+        foreach ($this->changes as $item)
+        {
+            if ($item->hasSameSource($change)) {
+                throw new ChangeIncoherenceException($item, $change);
             }
         }
     }
 
     /**
-     * Add a list of changes into the change list
-     *
-     * @param array $changes
+     * @param SymfonyStyle $output
      */
-    public function merge(array $changes)
+    public function outputConfirmedList(SymfonyStyle $output)
     {
-        /** @var Change $change */
-        foreach ($changes as $change) {
-            $this->add($change);
-        }
-    }
+        $headers = ['Status', 'Files', 'Type'];
+        $rows = [];
 
-    /**
-     * Sort the change array alphabetically by path
-     */
-    private function sortChanges()
-    {
-        usort($this->changes, function (Change $a, Change $b) {
-            return $a->path() > $b->path() ? 1 : -1;
-        });
+        /** @var Change $entry */
+        foreach ($this->changes as $entry) {
+            $status = $entry->getLabeledStatus();
+            $color = $entry->getColor();
+            $reason = $entry->getReason();
+            $source = $entry->getSource();
+            $destination = !is_null($entry->getDestination()) ? ' => '. $entry->getDestination() : '';
+            $files = $source . $destination;
+
+            $rows[] = [
+                '<fg='. $color .'>' . $status . '</>',
+                '<fg='. $color .'>' . $files . '</>',
+                '<fg='. $color .'>' . $reason . '</>',
+            ];
+        }
+
+        $output->table($headers, $rows);
     }
 }
