@@ -5,34 +5,20 @@ namespace Kodilab\Deployer;
 
 
 
-use Kodilab\Deployer\Changes\Add;
-use Kodilab\Deployer\Changes\Change;
 use Kodilab\Deployer\Changes\ChangeList;
-use Kodilab\Deployer\Changes\Delete;
-use Kodilab\Deployer\Changes\Modify;
-use Kodilab\Deployer\Changes\Rename;
 use Kodilab\Deployer\ComposerLock\ComposerLock;
 use Kodilab\Deployer\ComposerLock\ComposerLockComparator;
 use Kodilab\Deployer\Configuration\Configuration;
-use Kodilab\Deployer\Configuration\Ignores;
-use Kodilab\Deployer\Configuration\Includes;
-use Kodilab\Deployer\Configuration\Triggers;
 use Kodilab\Deployer\Git\Commit;
 use Kodilab\Deployer\Git\Git;
-use Kodilab\Deployer\Helpers\Str;
 use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerRepository;
-use Kodilab\Deployer\Traits\FileLists;
-use Kodilab\Deployer\Vendor\VendorDiff;
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Deployer
 {
     const VERSION = '1.0.0';
-
-    const PRODUCTION_EXTENSION = 'production';
 
     const BUILD_FILEPATH = 'BUILD';
     const PRODUCTION_BUILD_FILEPATH = 'BUILD.production';
@@ -215,7 +201,7 @@ class Deployer
         }
 
         $commit = file_get_contents(self::PRODUCTION_BUILD_FILEPATH);
-        $commit = str_replace("\n", "", $commit);
+        $commit = trim($commit);
 
         return $commit;
     }

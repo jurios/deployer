@@ -3,17 +3,6 @@
 use Symfony\Component\Console\Application;
 
 /**
- * Returns whether is a valid commit SHA reference
- *
- * @param string $commit
- * @return false|int
- */
-function isCommitValid(string $commit)
-{
-    return preg_match("/[a-z0-9]{40}/", $commit);
-}
-
-/**
  * Helper method to start a deploy process
  *
  * @param string $project_path
@@ -21,7 +10,7 @@ function isCommitValid(string $commit)
  * @param string|null $production_commit
  * @throws Exception
  */
-function deploy_it(string $project_path, array $config = [], string $production_commit = null) {
+function deploy(string $project_path, array $config = [], string $production_commit = null) {
 
     $app = new Symfony\Component\Console\Application('Deployer', \Kodilab\Deployer\Deployer::VERSION);
 

@@ -43,7 +43,7 @@ class DiffParser
 
         foreach ($output as $line) {
 
-            $line = Str::removeLastCarriageReturn($line);
+            $line = trim($line);
             $fields = explode("\t", $line);
 
             if (count($fields) < 2 && count($fields) > 3) {
