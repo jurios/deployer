@@ -28,7 +28,6 @@ class ComposerLockComparator
      * ComposerLockComparator constructor.
      * @param ComposerLock $local
      * @param ComposerLock $production
-     * @throws InvalidComposerLockFileException
      */
     public function __construct(ComposerLock $local, ComposerLock $production)
     {
@@ -40,7 +39,7 @@ class ComposerLockComparator
      * Compare the composerLock contents in order to get a dependency changed list
      *
      * @return array
-     * @throws \Kodilab\Deployer\Exceptions\InvalidComposerLockFileException
+     * @throws InvalidComposerLockFileException
      */
     public function compare()
     {

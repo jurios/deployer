@@ -14,22 +14,16 @@ abstract class Change implements Arrayable
     /**
      * @var string
      */
-    protected $source;
-
-    /**
-     * @var string
-     */
-    protected $destination;
+    protected $path;
 
     /**
      * @var string
      */
     protected $reason;
 
-    public function __construct(string $source, string $destination = null, string $reason = 'unknown')
+    public function __construct(string $path, string $reason = 'unknown')
     {
-        $this->source = $source;
-        $this->destination = $destination;
+        $this->path = $path;
         $this->reason = $reason;
     }
 
@@ -38,19 +32,9 @@ abstract class Change implements Arrayable
      *
      * @return string
      */
-    public function getSource()
+    public function getPath()
     {
-        return $this->source;
-    }
-
-    /**
-     * Retruns the destination field
-     *
-     * @return string
-     */
-    public function getDestination()
-    {
-        return $this->destination;
+        return $this->path;
     }
 
     /**
@@ -78,14 +62,14 @@ abstract class Change implements Arrayable
     abstract public function getColor();
 
     /**
-     * Returns if both entries has the same source
+     * Returns if both entries has the same path
      *
      * @param Change $entry
      * @return bool
      */
-    public function hasSameSource(Change $entry)
+    public function hasSamePath(Change $entry)
     {
-        return $this->getSource() === $entry->getSource();
+        return $this->getPath() === $entry->getPath();
     }
 
     /**
@@ -95,34 +79,34 @@ abstract class Change implements Arrayable
      */
     public function toArray()
     {
-        return [
-            'source' => $this->source,
-            'destination' => $this->destination
-        ];
+        return ['path' => $this->path, 'reason' => $this->reason];
     }
 
     /**
      * Instance a entry depending on the type
      * @param string $status
-     * @param string $source
+     * @param string $path
      * @param string|null $destination
      * @param string $reason
-     * @return Change
+     * @return Change[]
      * @throws DiffEntryStatusUnknown
      */
-    public static function make(string $status, string $source, string $destination = null, string $reason = 'unknown')
+    public static function buildChanges(string $status, string $path, string $destination = null, string $reason = 'unknown')
     {
         switch ($status) {
             case DiffParser::ADDED:
-                return new Add($source, $reason);
+                return [new Add($path, $reason)];
             case DiffParser::MODIFIED:
-                return new Modify($source, $reason);
+                return [new Modify($path, $reason)];
             case DiffParser::DELETED:
-                return new Delete($source, $reason);
+                return [new Delete($path, $reason)];
             case DiffParser::RENAMED:
-                return new Rename($source, $destination, $reason);
+                return [
+                    new Delete($path, $reason),
+                    new Add($destination, $reason . '(rename partial change)')
+                ];
             default:
-                throw new DiffEntryStatusUnknown($status, $status . "\t" . $source . "\t" . $destination);
+                throw new DiffEntryStatusUnknown($status, $status . "\t" . $path . "\t");
         }
     }
 }

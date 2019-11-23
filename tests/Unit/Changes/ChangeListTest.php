@@ -24,14 +24,26 @@ class ChangeListTest extends TestCase
         $this->collection = new ChangeList(new Configuration(require __DIR__ .'/../../../config/config.php'));
     }
 
-    public function test_add_entry_should_throw_an_exception_if_already_an_entry_exists_with_the_same_source()
+    public function test_add_entry_should_throw_an_exception_if_already_an_entry_exists_with_the_same_path()
     {
         $this->expectException(ChangeIncoherenceException::class);
 
         $entry = new Add($this->faker->name);
-        $entry2 = new Modify($entry->getSource());
+        $entry2 = new Modify($entry->getPath());
 
         $this->collection->add($entry);
         $this->collection->add($entry2);
+    }
+
+    public function test_add_ignored_entry_should_not_be_added_in_the_changes_list()
+    {
+        $changeList = new ChangeList(new Configuration(['ignore' => ['a/*'], 'manager' => ['protocol' => 'simulate']]));
+
+        $add = new Add('a/b');
+
+        $changeList->add($add);
+
+        $this->assertTrue($changeList->getChanges()->where('path', $add->getPath())->isEmpty());
+        $this->assertEquals($add, $changeList->getIgnored()->where('path', $add->getPath())->first());
     }
 }

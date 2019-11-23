@@ -58,7 +58,9 @@ class DiffParser
                 $this->composerlock_changed = true;
             }
 
-            $this->entries[] = Change::make($status, $source, $destination, static::REASON);
+            $changes = Change::buildChanges($status, $source, $destination, static::REASON);
+
+            $this->entries = array_merge($this->entries, $changes);
         }
 
         return $this;

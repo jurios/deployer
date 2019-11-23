@@ -30,7 +30,7 @@ class ComposerLockComparatorTest extends TestCase
         /** @var Change $change */
         $change = $comparator->compare()[0];
 
-        $this->assertEquals('vendor/' . $local->packages[0]->name, $change->getSource());
+        $this->assertEquals('vendor/' . $local->packages[0]->name, $change->getPath());
         $this->assertEquals(Add::class, get_class($change));
     }
 
@@ -50,7 +50,7 @@ class ComposerLockComparatorTest extends TestCase
         /** @var Change $change */
         $change = $comparator->compare()[0];
 
-        $this->assertEquals('vendor/' . $local->packages[0]->name, $change->getSource());
+        $this->assertEquals('vendor/' . $local->packages[0]->name, $change->getPath());
         $this->assertEquals(Modify::class, get_class($change));
     }
 
@@ -70,7 +70,7 @@ class ComposerLockComparatorTest extends TestCase
         /** @var Change $change */
         $change = $comparator->compare()[0];
 
-        $this->assertEquals('vendor/' . $production->packages[0]->name, $change->getSource());
+        $this->assertEquals('vendor/' . $production->packages[0]->name, $change->getPath());
         $this->assertEquals(Delete::class, get_class($change));
 
     }

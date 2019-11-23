@@ -36,11 +36,11 @@ class DiffParserTest extends TestCase
             $entries_collection->add($entry);
         }
 
-        $added_entry = $entries_collection->where('source', $add_path)->first();
-        $modified_entry = $entries_collection->where('source', $modified_path)->first();
-        $deleted_entry = $entries_collection->where('source', $deleted_path)->first();
-        $renamed_entry = $entries_collection->where('source', $rename_source_path)
-            ->where('destination', $rename_destination_path)->first();
+        $added_entry = $entries_collection->where('path', $add_path)->first();
+        $modified_entry = $entries_collection->where('path', $modified_path)->first();
+        $deleted_entry = $entries_collection->where('path', $deleted_path)->first();
+        $renamed_entry_delete = $entries_collection->where('path', $rename_source_path)->first();
+        $renamed_entry_add = $entries_collection->where('path', $rename_destination_path)->first();
 
         $this->assertNotNull($added_entry);
         $this->assertEquals(Add::class, get_class($added_entry));
@@ -51,8 +51,11 @@ class DiffParserTest extends TestCase
         $this->assertNotNull($deleted_entry);
         $this->assertEquals(Delete::class, get_class($deleted_entry));
 
-        $this->assertNotNull($renamed_entry);
-        $this->assertEquals(Rename::class, get_class($renamed_entry));
+        $this->assertNotNull($renamed_entry_delete);
+        $this->assertEquals(Delete::class, get_class($renamed_entry_delete));
+
+        $this->assertNotNull($renamed_entry_add);
+        $this->assertEquals(Add::class, get_class($renamed_entry_add));
     }
 
     public function test_an_unknown_status_entry_should_throw_an_exception()

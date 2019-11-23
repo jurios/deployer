@@ -6,9 +6,9 @@ namespace Kodilab\Deployer\Changes;
 
 class Delete extends Change
 {
-    public function __construct(string $source, string $reason = 'unknown')
+    public function __construct(string $path, string $reason = 'unknown')
     {
-        parent::__construct($source, null, $reason);
+        parent::__construct($path, $reason);
     }
 
     /**
