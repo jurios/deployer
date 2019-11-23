@@ -9,15 +9,9 @@ use Kodilab\Deployer\Tests\TestCase;
 
 class ConfigurationTest extends TestCase
 {
-    public function test_protocol_is_accessible()
-    {
-        $protocol = $this->faker->word;
-
-        $configuration = new Configuration(['manager' => ['protocol' => $protocol]]);
-
-        $this->assertEquals($protocol, $configuration->get('manager.protocol'));
-    }
-
+    /**
+     * @throws \Exception
+     */
     public function test_get_method()
     {
         $index1 = $this->faker->word;
@@ -35,51 +29,25 @@ class ConfigurationTest extends TestCase
 
         $path = $index1 . "." . $index2 . "." . $index3;
 
-        $configuration = Configuration::generateDefaultConfguration();
-
-        $configuration->set($path, $value);
+        $configuration = new Configuration($config);
 
         $this->assertEquals($value, $configuration->get($path));
     }
 
-    public function test_get_default_configuration_returns_the_default_configuration()
+    public function test_getDefaultConfiguration_returns_the_default_configuration()
     {
-        $configuration = Configuration::generateDefaultConfguration();
-
-        $this->assertEquals(Configuration::class, get_class($configuration));
-        $this->assertEquals([
-            'ignore' => [],
-            'include' => [],
-            'manager' => [
-                'protocol' => 'simulate'
-            ]
-        ], $configuration->toArray());
-
+        $this->assertEquals(require __DIR__ . '/../../config/config.php', Configuration::getDefualtSettings());
     }
 
     public function test_set_configuration_will_merge_the_new_configuration_in_the_raw_configuration()
     {
-        $configuration = Configuration::generateDefaultConfguration();
-
-        $index1 = $this->faker->word;
-        $index2 = $this->faker->word;
-        $index3 = $this->faker->word;
         $value  = $this->faker->word;
+        $settings = [$value => $value];
 
-        $config = [
-            $index1 => [
-                $index2 => [
-                    $index3 => $value
-                ]
-            ]
-        ];
 
-        $path = $index1 . "." . $index2 . "." . $index3;
+        $config = new Configuration($settings);
 
-        $configuration->set($index1, $config[$index1]);
-
-        $this->assertEquals($configuration->get($index1), $config[$index1]);
-        $this->assertEquals($configuration->get($path), $value);
-
+        $this->assertEquals($config->get('manager.protocol'), 'simulate');
+        $this->assertEquals($config->get($value), $value);
     }
 }

@@ -14,9 +14,14 @@ class PathTest extends TestCase
         $this->assertTrue(Path::match(['a/b/c'], 'a/b/c'));
     }
 
-    public function test_getMatchedRules_should_return_true_if_the_rule_is_included_in_the_path()
+    public function test_getMatchedRules_should_return_false_if_the_rule_does_not_match_the_path()
     {
-        $this->assertTrue(Path::match(['a/b/c'], 'a/b/c/d'));
+        $this->assertFalse(Path::match(['a/b/c'], 'a/b/c/d'));
+    }
+
+    public function test_getMatchedRules_should_return_true_if_the_wildcard_is_used_when_rule_is_part_of_the_path()
+    {
+        $this->assertTrue(Path::match(['a/b/c/*'], 'a/b/c/d/e/f'));
     }
 
     public function test_getMatchedRules_wildcard_should_work_as_expected()

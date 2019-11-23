@@ -5,6 +5,7 @@ namespace Kodilab\Deployer;
 
 
 
+use Illuminate\Filesystem\Filesystem;
 use Kodilab\Deployer\Changes\ChangeList;
 use Kodilab\Deployer\ComposerLock\ComposerLock;
 use Kodilab\Deployer\ComposerLock\ComposerLockComparator;
@@ -15,6 +16,7 @@ use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Finder\SplFileInfo;
 
 class Deployer
 {
@@ -25,12 +27,13 @@ class Deployer
     const PRODUCTION_COMPOSERLOCK_FILEPATH = 'composer.lock.production';
 
 
-    /**
-     * Project path
-     *
-     * @var string
-     */
+    /** @var string */
     protected $project_path;
+
+    /**
+     * @var string[]
+     */
+    protected $project_files;
 
     /**
      * Configuration class
@@ -73,6 +76,7 @@ class Deployer
         $this->config = new Configuration($config);
         $this->manager = ManagerRepository::getManager($this->config);
         $this->git = new Git($this->project_path);
+        $this->project_files = $this->discoverProjectFiles($this->project_path);
     }
 
     /**
@@ -89,7 +93,7 @@ class Deployer
         // Get the given commit or get the last one in the log
         $local_commit = $this->getLocalCommit($local_commit);
 
-        $changeList = new ChangeList($this->config);
+        $changeList = new ChangeList($this->config, $this->project_files);
 
         $this->checkoutComposerLockTo($production_commit, self::PRODUCTION_COMPOSERLOCK_FILEPATH);
 
@@ -177,6 +181,21 @@ class Deployer
             $this->git->getEmptyCommit(),
             static::PRODUCTION_BUILD_FILEPATH
         );
+    }
+
+    /**
+     * Returns the project path file list
+     *
+     * @param string $project_path
+     * @return array
+     */
+    protected function discoverProjectFiles(string $project_path)
+    {
+        $filesystem = new Filesystem();
+
+        return array_map(function (SplFileInfo $file) {
+            return $file->getPathname();
+        }, $filesystem->allFiles($project_path, true));
     }
 
     /**

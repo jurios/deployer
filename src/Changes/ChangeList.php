@@ -32,11 +32,21 @@ class ChangeList
      */
     protected $config;
 
-    public function __construct(Configuration $config)
+    /**
+     * Project path file list
+     *
+     * @var string[]
+     */
+    protected $files;
+
+    public function __construct(Configuration $config, array $files)
     {
         $this->config = $config;
         $this->changes = new Collection();
         $this->ignored = new Collection();
+        $this->files = $files;
+
+        $this->addIncludedFilesToChanges();
     }
 
     /**
@@ -46,7 +56,7 @@ class ChangeList
      */
     public function add(Change $change)
     {
-        if ($this->shouldBeIgnored($change)) {
+        if ($this->shouldBeIgnored($change->getPath())) {
             $this->ignored->put($change->getPath(), $change);
             return $this;
         }
@@ -122,14 +132,43 @@ class ChangeList
     }
 
     /**
-     * Returns whether a source change should be ignored
+     * Add the project files that must be included
      *
-     * @param Change $change
+     * @throws ChangeIncoherenceException
+     */
+    protected function addIncludedFilesToChanges()
+    {
+        $shouldBeIncludedFiles = array_filter($this->files, function (string $path) {
+            return $this->shouldBeIncluded($path);
+        });
+
+        $changes = array_map(function (string $path) {
+            return new Add($path, 'included');
+        }, $shouldBeIncludedFiles);
+
+        $this->merge($changes);
+    }
+
+    /**
+     * Returns whether a path should be ignored
+     *
+     * @param string $path
      * @return bool
      */
-    protected function shouldBeIgnored(Change $change)
+    protected function shouldBeIgnored(string $path)
     {
-        return Path::match($this->getIgnoreRules(), $change->getPath());
+        return Path::match($this->getIgnoreRules(), $path);
+    }
+
+    /**
+     * Returns whether a path should be included
+     *
+     * @param string $path
+     * @return bool
+     */
+    protected function shouldBeIncluded(string $path)
+    {
+        return Path::match($this->getIncludedRules(), $path);
     }
 
     /**
@@ -140,6 +179,16 @@ class ChangeList
     protected function getIgnoreRules()
     {
         return $this->config->get('ignore', []);
+    }
+
+    /**
+     * Returns the include rules
+     *
+     * @return array
+     */
+    protected function getIncludedRules()
+    {
+        return $this->config->get('include', []);
     }
 
     /**

@@ -4,22 +4,24 @@
 namespace Kodilab\Deployer\Configuration;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Translation\ArrayLoader;
-use Illuminate\Translation\Translator;
 use Illuminate\Validation\Validator;
+use Kodilab\Deployer\Validator\Translator;
 
 class Configuration implements Arrayable
 {
     /** @var array */
-    protected $raw_config;
+    protected $config;
 
-    /** @var array  */
-    protected $default_config;
-
-    public function __construct(array $config)
+    /**
+     * Configuration constructor.
+     * @param array $config
+     * @throws \Exception
+     */
+    public function __construct(array $config = [])
     {
-        $this->raw_config = $config;
-        $this->validateRawConfig();
+        $this->config = array_merge(static::getDefualtSettings(), $config);
+
+        $this->validateConfig($this->config);
     }
 
     /**
@@ -32,7 +34,7 @@ class Configuration implements Arrayable
     {
         $indexes = explode(".", $path);
 
-        $pointer = $this->raw_config;
+        $pointer = $this->config;
 
         foreach ($indexes as $index) {
 
@@ -56,7 +58,7 @@ class Configuration implements Arrayable
     {
         $indexes = explode(".", $path);
 
-        $pointer = &$this->raw_config;
+        $pointer = &$this->config;
 
         foreach ($indexes as $i => $index) {
 
@@ -79,20 +81,22 @@ class Configuration implements Arrayable
      */
     public function toArray()
     {
-        return $this->raw_config;
+        return $this->config;
     }
 
     /**
      * Validates configuration parameters
      *
+     * @param array $config
      * @throws \Exception
      */
-    private function validateRawConfig()
+    private function validateConfig(array $config)
     {
-        $validator = new Validator(new Translator(new ArrayLoader(), 'en'), $this->raw_config, [
+        $validator = new Validator(new Translator(), $config, [
            'include' => 'array',
            'ignore' => 'array',
-           'manager.protocol' => 'required|string'
+           'manager.protocol' => 'required|string',
+            'project_path' => 'string'
         ], []);
 
         if ($validator->fails()) {
@@ -103,18 +107,11 @@ class Configuration implements Arrayable
     /**
      * Generates a default configuration
      *
-     * @return Configuration
+     * @return array
+     * @throws \Exception
      */
-    static public function generateDefaultConfguration()
+    static public function getDefualtSettings()
     {
-        $default_configuration = [
-            'ignore' => [],
-            'include' => [],
-            'manager' => [
-                'protocol' => 'simulate'
-            ]
-        ];
-
-        return new self($default_configuration);
+        return require __DIR__ . '/../../config/config.php';
     }
 }
