@@ -107,6 +107,18 @@ class ChangeListTest extends TestCase
         $this->assertNotEmpty($this->collection->getChanges()->where('path', Str::after($directory, self::LARAVEL_PROJECT . DIRECTORY_SEPARATOR)));
     }
 
+    public function test_delete_change_should_delete_recursively_if_its_parent_does_not_exist()
+    {
+        $directory = Path::build(self::LARAVEL_PROJECT, $this->faker->word);
+        $file2 = Path::build($directory, $this->faker->word, $this->faker->word);
+
+        $this->collection->add(new Delete(Str::after($file2, self::LARAVEL_PROJECT . DIRECTORY_SEPARATOR), false));
+
+        $this->assertEquals(1, count($this->collection->getChanges()));
+        $this->assertEmpty($this->collection->getChanges()->where('path', Str::after($file2, self::LARAVEL_PROJECT . DIRECTORY_SEPARATOR)));
+        $this->assertNotEmpty($this->collection->getChanges()->where('path', Str::after($directory, self::LARAVEL_PROJECT . DIRECTORY_SEPARATOR)));
+    }
+
     public function test_delete_change_should_not_delete_recursively_if_its_parent_is_not_empty()
     {
         $directory = Path::build(self::LARAVEL_PROJECT, $this->faker->word);
@@ -132,6 +144,17 @@ class ChangeListTest extends TestCase
 
         $this->collection->add($entry);
         $this->collection->add($entry2);
+    }
+
+    public function test_add_entry_should_not_throw_an_exception_if_already_an_entry_exists_with_the_same_path_and_same_change()
+    {
+        $entry = new Add($this->faker->name);
+        $entry2 = new Add($entry->getPath());
+
+        $this->collection->add($entry);
+        $this->collection->add($entry2);
+
+        $this->assertEquals(1, count($this->collection->getChanges()));
     }
 
     public function test_add_ignored_entry_should_not_be_added_in_the_changes_list()

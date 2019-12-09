@@ -5,8 +5,7 @@ namespace Kodilab\Deployer;
 
 
 
-use Illuminate\Filesystem\Filesystem;
-use Kodilab\Deployer\Changes\ChangeList;
+use Kodilab\Deployer\Changes\ChangeList\ChangeList;
 use Kodilab\Deployer\ComposerLock\ComposerLock;
 use Kodilab\Deployer\ComposerLock\ComposerLockComparator;
 use Kodilab\Deployer\Configuration\Configuration;
@@ -16,7 +15,6 @@ use Kodilab\Deployer\Managers\ManagerAbstract;
 use Kodilab\Deployer\Managers\ManagerRepository;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Finder\SplFileInfo;
 
 class Deployer
 {

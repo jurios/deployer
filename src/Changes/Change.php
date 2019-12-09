@@ -119,8 +119,8 @@ abstract class Change implements Arrayable
                 return [new Delete($path, $is_dir, $reason)];
             case DiffParser::RENAMED:
                 return [
-                    new Delete($path, $is_dir, $reason),
-                    new Add($destination, $is_dir, $reason . '(rename partial change)')
+                    new Delete($path, $is_dir, $reason . '(rename)'),
+                    new Add($destination, $is_dir, $reason . '(rename)')
                 ];
             default:
                 throw new DiffEntryStatusUnknown($status, $status . "\t" . $path . "\t");

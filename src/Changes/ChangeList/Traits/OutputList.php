@@ -23,8 +23,7 @@ trait OutputList
             $color = $entry->getColor();
             $reason = $entry->getReason();
             $source = $entry->getPath();
-            $destination = !is_null($entry->getDestination()) ? ' => '. $entry->getDestination() : '';
-            $files = $source . $destination;
+            $files = $source;
 
             $rows[] = [
                 '<fg='. $color .'>' . $status . '</>',

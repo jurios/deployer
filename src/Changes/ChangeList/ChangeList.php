@@ -90,6 +90,7 @@ class ChangeList
         //In order to avoid let empty directories in production, we must check if the container directory exists
         // as git doesn't track directories.
         if (get_class($change) === Delete::class && !$change->isDir()) {
+            /** @var Delete $change */
             return $this->recursiveDelete($change);
         }
 
@@ -101,6 +102,7 @@ class ChangeList
 
         //When a directory is modified, we must generate a change for each file in the directory (recursively)
         if (get_class($change) === Modify::class && $change->isDir()) {
+            /** @var Modify $change */
             return $this->recursiveModify($change);
         }
 
@@ -117,7 +119,7 @@ class ChangeList
         $files = $this->discoverFiles(Path::build($this->project_path, $add->getPath()));
 
         foreach ($files as $file) {
-            $change = new Add(Str::after($file, $this->project_path . DIRECTORY_SEPARATOR), false, 'recursively added');
+            $change = new Add(Str::after($file, $this->project_path . DIRECTORY_SEPARATOR), false, $add->getReason());
             $this->addToChanges($change);
         }
 
@@ -134,7 +136,7 @@ class ChangeList
         $files = $this->discoverFiles(Path::build($this->project_path, $modify->getPath()));
 
         foreach ($files as $file) {
-            $change = new Modify(Str::after($file, $this->project_path . DIRECTORY_SEPARATOR), false, 'recursively added');
+            $change = new Modify(Str::after($file, $this->project_path . DIRECTORY_SEPARATOR), false, $modify->getReason());
             $this->addToChanges($change);
         }
 
@@ -148,10 +150,16 @@ class ChangeList
      */
     protected function recursiveDelete(Delete $delete)
     {
-        $files = $this->discoverFiles(Path::build($this->project_path, dirname($delete->getPath())), true);
+        $parent_directory = Path::build($this->project_path, dirname($delete->getPath()));
 
-        if (count($files) === 0 && dirname(Path::build($this->project_path, $delete->getPath())) !== $this->project_path) {
-            return $this->recursiveDelete(new Delete(dirname($delete->getPath()), true, 'empty directory'));
+        if ($this->filesystem->isDirectory($parent_directory)) {
+            $files = $this->discoverFiles($parent_directory, true);
+        } else {
+            $files = [];
+        }
+
+        if (count($files) === 0 && $parent_directory !== $this->project_path) {
+            return $this->recursiveDelete(new Delete(dirname($delete->getPath()), true, $delete->getReason()));
         }
 
         return $this->addToChanges($delete);
@@ -207,7 +215,7 @@ class ChangeList
         /** @var Change $item */
         foreach ($this->changes as $item)
         {
-            if ($item->hasSamePath($change)) {
+            if ($item->hasSamePath($change) && get_class($change) !== get_class($item)) {
                 throw new ChangeIncoherenceException($item, $change);
             }
         }

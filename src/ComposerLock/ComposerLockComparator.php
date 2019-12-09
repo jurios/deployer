@@ -78,7 +78,7 @@ class ComposerLockComparator
     protected function addAutoloadDirectory(array $diff)
     {
         if (count($diff) > 0) {
-            $diff[] = new Modify('vendor/autoload', static::REASON);
+            $diff[] = new Modify('vendor/composer', true, static::REASON);
         }
 
         return $diff;
