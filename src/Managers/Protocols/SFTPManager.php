@@ -71,26 +71,14 @@ class SFTPManager extends ManagerAbstract implements ManagerInterface
 
     public function rmDir(string $prod_path)
     {
-        $status = $this->sftp->delete($prod_path);
+        $status = $this->sftp->delete($prod_path, true);
 
         return $status;
     }
 
     public function mkDir(string $prod_path)
     {
-        $origin = $this->sftp->pwd();
-
-        $parts = explode(DIRECTORY_SEPARATOR, $prod_path);
-
-        foreach ($parts as $part) {
-
-            if (!$this->sftp->chdir($part)) {
-                $this->sftp->mkdir($part);
-                $this->sftp->chdir($part);
-            }
-        }
-
-        $this->sftp->chdir($origin);
+        $this->sftp->mkdir($prod_path, -1, true);
     }
 
     protected function startConnection()

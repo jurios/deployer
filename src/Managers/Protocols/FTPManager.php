@@ -66,31 +66,29 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
 
     public function rmDir(string $prod_path)
     {
-        try {
-            $status = ftp_rmdir($this->sftp, $prod_path);
-        } catch (\Exception $e) {
-            $status = true;
+        if (@ftp_delete ($this->sftp, $prod_path) === false) {
+
+            if ($children = @ftp_nlist ($this->sftp, $prod_path)) {
+                foreach ($children as $p)
+                    ftp_rdel ($this->sftp,  $p);
+            }
+
+            @ftp_rmdir ($this->sftp, $prod_path);
         }
 
-        return $status;
+        return true;
     }
 
     public function mkDir(string $prod_path)
     {
-        $origin = ftp_pwd($this->sftp);
-        $parts = explode(DIRECTORY_SEPARATOR, $prod_path);
+        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $prod_path));
 
-        foreach ($parts as $part) {
-
-            try {
-                ftp_chdir($this->sftp, $part);
-            } catch (\Exception $e) {
+        foreach($parts as $part){
+            if(!@ftp_chdir($this->sftp, $part)){
                 ftp_mkdir($this->sftp, $part);
                 ftp_chdir($this->sftp, $part);
             }
         }
-
-        ftp_chdir($this->sftp, $origin);
     }
 
     protected function startConnection()
