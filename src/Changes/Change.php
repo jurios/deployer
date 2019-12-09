@@ -21,10 +21,16 @@ abstract class Change implements Arrayable
      */
     protected $reason;
 
-    public function __construct(string $path, string $reason = 'unknown')
+    /**
+     * @var bool
+     */
+    protected $is_dir;
+
+    public function __construct(string $path, bool $is_dir = false, string $reason = 'unknown')
     {
         $this->path = $path;
         $this->reason = $reason;
+        $this->is_dir = $is_dir;
     }
 
     /**
@@ -73,6 +79,16 @@ abstract class Change implements Arrayable
     }
 
     /**
+     * Returns whether the changed item is a file or a directory
+     *
+     * @return bool
+     */
+    public function isDir()
+    {
+        return $this->is_dir;
+    }
+
+    /**
      * Export to array
      *
      * @return array
@@ -87,23 +103,24 @@ abstract class Change implements Arrayable
      * @param string $status
      * @param string $path
      * @param string|null $destination
+     * @param bool $is_dir
      * @param string $reason
      * @return Change[]
      * @throws DiffEntryStatusUnknown
      */
-    public static function buildChanges(string $status, string $path, string $destination = null, string $reason = 'unknown')
+    public static function buildChanges(string $status, string $path, string $destination = null, bool $is_dir = false, string $reason = 'unknown')
     {
         switch ($status) {
             case DiffParser::ADDED:
-                return [new Add($path, $reason)];
+                return [new Add($path, $is_dir, $reason)];
             case DiffParser::MODIFIED:
-                return [new Modify($path, $reason)];
+                return [new Modify($path, $is_dir, $reason)];
             case DiffParser::DELETED:
-                return [new Delete($path, $reason)];
+                return [new Delete($path, $is_dir, $reason)];
             case DiffParser::RENAMED:
                 return [
-                    new Delete($path, $reason),
-                    new Add($destination, $reason . '(rename partial change)')
+                    new Delete($path, $is_dir, $reason),
+                    new Add($destination, $is_dir, $reason . '(rename partial change)')
                 ];
             default:
                 throw new DiffEntryStatusUnknown($status, $status . "\t" . $path . "\t");

@@ -6,9 +6,9 @@ namespace Kodilab\Deployer\Changes;
 
 class Modify extends Change
 {
-    public function __construct(string $path, string $reason = 'unknown')
+    public function __construct(string $path, bool $is_dir = false, string $reason = 'unknown')
     {
-        parent::__construct($path, $reason);
+        parent::__construct($path, $is_dir, $reason);
     }
 
     /**

@@ -55,7 +55,7 @@ class ComposerLockComparator
             if (!is_null($production_dependency = $this->production->findInPackages($dependency->name)) &&
                 $dependency->getReference() !== $production_dependency->getReference()
             ) {
-                $diff[] = new Modify($dependency->getPath(), static::REASON);
+                $diff[] = new Modify($dependency->getPath(), true, static::REASON);
             }
         }
 
