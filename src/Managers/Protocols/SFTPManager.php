@@ -20,7 +20,7 @@ class SFTPManager extends ManagerAbstract implements ManagerInterface
         $this->port = is_null($config->get('manager.sftp.port'))? 21 : $config->get('manager.sftp.port');
         $this->user = $config->get('manager.sftp.user');
         $this->password = $config->get('manager.sftp.password');
-        $this->path = is_null($config->get('manager.sftp.path'))? "" : $config->get('manager.sftp.path');
+        $this->path = $config->get('manager.sftp.path', null);
 
         parent::__construct($config);
     }
@@ -55,23 +55,23 @@ class SFTPManager extends ManagerAbstract implements ManagerInterface
             $prod_path = $local_path;
         }
 
-        $this->mkdir(dirname($this->generateRemotePath($prod_path)));
+        $this->mkdir(dirname($prod_path));
 
-        $status = $this->sftp->put($this->generateRemotePath($prod_path), $local_path, SFTP::SOURCE_LOCAL_FILE);
+        $status = $this->sftp->put($prod_path, $local_path, SFTP::SOURCE_LOCAL_FILE);
 
         return $status;
     }
 
-    public function delete(string $prod_path)
+    public function rm(string $prod_path)
     {
-        $status = $this->sftp->delete($this->generateRemotePath($prod_path));
+        $status = $this->sftp->delete($prod_path);
 
         return $status;
     }
 
     public function rmDir(string $prod_path)
     {
-        $status = $this->sftp->delete($this->generateRemotePath($prod_path));
+        $status = $this->sftp->delete($prod_path);
 
         return $status;
     }
@@ -115,6 +115,10 @@ class SFTPManager extends ManagerAbstract implements ManagerInterface
 
         } catch (\Exception $e) {
             die("FTP Authentication failed");
+        }
+
+        if (is_null($this->path)) {
+            $this->sftp->chdir($this->path);
         }
 
         printf("Connected to the FTP Server\n");

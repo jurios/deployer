@@ -45,7 +45,7 @@ class SimulateManager extends ManagerAbstract implements ManagerInterface
         return $status;
     }
 
-    public function delete(string $prod_path)
+    public function rm(string $prod_path)
     {
         $status = true;
 

@@ -39,7 +39,7 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
             $local_path = $prod_path;
         }
 
-        $status = ftp_get($this->sftp, $local_path, $this->generateRemotePath($prod_path), FTP_BINARY);
+        $status = ftp_get($this->sftp, $local_path, $prod_path, FTP_BINARY);
 
         return $status;
 
@@ -51,15 +51,15 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
             $prod_path = $local_path;
         }
 
-        $this->mkdir(dirname($this->generateRemotePath($prod_path)));
-        $status = ftp_put($this->sftp, $this->generateRemotePath($prod_path), $local_path, FTP_BINARY);
+        $this->mkdir(dirname($prod_path));
+        $status = ftp_put($this->sftp, $prod_path, $local_path, FTP_BINARY);
 
         return $status;
     }
 
-    public function delete(string $prod_path)
+    public function rm(string $prod_path)
     {
-        $status = ftp_delete($this->sftp, $this->generateRemotePath($prod_path));
+        $status = ftp_delete($this->sftp, $prod_path);
 
         return $status;
     }
@@ -67,7 +67,7 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
     public function rmDir(string $prod_path)
     {
         try {
-            $status = ftp_rmdir($this->sftp, $this->generateRemotePath($prod_path));
+            $status = ftp_rmdir($this->sftp, $prod_path);
         } catch (\Exception $e) {
             $status = true;
         }
@@ -118,6 +118,10 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
         }
 
         ftp_pasv($this->sftp, true);
+
+        if (!is_null($this->path)) {
+            ftp_chdir($this->sftp, $this->path);
+        }
 
         printf("Connected to the FTP Server\n");
     }

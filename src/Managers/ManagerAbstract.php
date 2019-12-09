@@ -32,11 +32,6 @@ class ManagerAbstract
         //
     }
 
-    protected function generateRemotePath($file)
-    {
-        return $this->path . $file;
-    }
-
     protected function validateConfig()
     {
         //

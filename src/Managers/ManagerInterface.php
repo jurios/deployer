@@ -30,7 +30,7 @@ interface ManagerInterface
      * @param string $prod_path
      * @return mixed
      */
-    public function delete(string $prod_path);
+    public function rm(string $prod_path);
 
     /**
      * Remove a directory recursively
