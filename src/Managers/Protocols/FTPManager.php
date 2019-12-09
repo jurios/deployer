@@ -66,15 +66,13 @@ class FTPManager extends ManagerAbstract implements ManagerInterface
 
     public function rmDir(string $prod_path)
     {
-        if (@ftp_delete ($this->sftp, $prod_path) === false) {
-
-            if ($children = @ftp_nlist ($this->sftp, $prod_path)) {
-                foreach ($children as $p)
-                    ftp_rdel ($this->sftp,  $p);
+        if ($children = @ftp_nlist ($this->sftp, $prod_path)) {
+            foreach ($children as $p) {
+                ftp_rdel($this->sftp, $p);
             }
-
-            @ftp_rmdir ($this->sftp, $prod_path);
         }
+
+        @ftp_rmdir ($this->sftp, $prod_path);
 
         return true;
     }
