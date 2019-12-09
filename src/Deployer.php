@@ -31,11 +31,6 @@ class Deployer
     protected $project_path;
 
     /**
-     * @var string[]
-     */
-    protected $project_files;
-
-    /**
      * Configuration class
      *
      * @var Configuration
@@ -64,7 +59,7 @@ class Deployer
      *
      * @param string $project_path
      * @param array $config
-     * @param OutputInterface|null $output
+     * @param SymfonyStyle $output
      * @throws \Exception
      */
     public function __construct(string $project_path, array $config = [], SymfonyStyle $output = null)
@@ -76,7 +71,6 @@ class Deployer
         $this->config = new Configuration($config);
         $this->manager = ManagerRepository::getManager($this->config);
         $this->git = new Git($this->project_path);
-        $this->project_files = $this->discoverProjectFiles($this->project_path);
     }
 
     /**
@@ -93,7 +87,7 @@ class Deployer
         // Get the given commit or get the last one in the log
         $local_commit = $this->getLocalCommit($local_commit);
 
-        $changeList = new ChangeList($this->config, $this->project_files);
+        $changeList = new ChangeList($this->config, $this->project_path);
 
         $this->checkoutComposerLockTo($production_commit, self::PRODUCTION_COMPOSERLOCK_FILEPATH);
 
@@ -181,21 +175,6 @@ class Deployer
             $this->git->getEmptyCommit(),
             static::PRODUCTION_BUILD_FILEPATH
         );
-    }
-
-    /**
-     * Returns the project path file list
-     *
-     * @param string $project_path
-     * @return array
-     */
-    protected function discoverProjectFiles(string $project_path)
-    {
-        $filesystem = new Filesystem();
-
-        return array_map(function (SplFileInfo $file) {
-            return $file->getPathname();
-        }, $filesystem->allFiles($project_path, true));
     }
 
     /**

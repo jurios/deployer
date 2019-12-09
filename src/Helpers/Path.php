@@ -7,6 +7,30 @@ namespace Kodilab\Deployer\Helpers;
 class Path
 {
     /**
+     * Build a path using the partials
+     *
+     * @param $paths
+     * @return string|null
+     */
+    public static function build($paths)
+    {
+        $path = null;
+
+        foreach (func_get_args() as $partial)
+        {
+            if ($partial !== '') {
+                if (!is_null($path)) {
+                    $path .= DIRECTORY_SEPARATOR;
+                }
+
+                $path .= $partial;
+            }
+        }
+
+        return preg_replace('/(\/){2,}/', '/', $path);
+    }
+
+    /**
      * Returns whether a path matches in at least one rule
      *
      * @param array $rules
